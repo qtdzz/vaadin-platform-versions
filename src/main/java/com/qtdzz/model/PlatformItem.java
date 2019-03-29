@@ -56,6 +56,30 @@ public class PlatformItem {
         this.name = name;
     }
 
+    public void setJavaVersion(String javaVersion) {
+        this.javaVersion = javaVersion;
+    }
+
+    public void setNpmName(String npmName) {
+        this.npmName = npmName;
+    }
+
+    public void setNpmVersion(String npmVersion) {
+        this.npmVersion = npmVersion;
+    }
+
+    public void setBowerVersion(String bowerVersion) {
+        this.bowerVersion = bowerVersion;
+    }
+
+    public void setComponent(boolean component) {
+        isComponent = component;
+    }
+
+    public void setPro(boolean pro) {
+        isPro = pro;
+    }
+
     @JsonCreator
     public static PlatformItem factory(Map<String, Object> props) {
         String javaVersion = (String) props.get("javaVersion");

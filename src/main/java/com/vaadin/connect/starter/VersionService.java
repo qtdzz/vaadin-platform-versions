@@ -9,16 +9,9 @@
  *******************************************************************************/
 package com.vaadin.connect.starter;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import javax.validation.constraints.NotNull;
 
@@ -26,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qtdzz.model.PlatformItem;
+import com.qtdzz.model.PlatformItemsResult;
 import com.qtdzz.model.PlatformVersions;
 import com.vaadin.connect.VaadinService;
 import com.vaadin.connect.auth.AnonymousAllowed;
@@ -35,58 +29,42 @@ import com.vaadin.connect.auth.AnonymousAllowed;
 public class VersionService {
 
     @NotNull
-    public List<PlatformItem> getFlowVersion() {
-        PlatformVersions platformVersions = request(
-                "https://raw.githubusercontent.com/vaadin/platform/13.0" +
-                        ".2/versions.json");
-        List<PlatformItem> platformItems = new ArrayList<>();
-        if (platformVersions != null) {
-            for (Map.Entry<String, PlatformItem> coreItems : platformVersions
-                    .getCore().entrySet()) {
-                coreItems.getValue().setName(coreItems.getKey());
-                platformItems.add(coreItems.getValue());
-            }
-
-            for (Map.Entry<String, PlatformItem> proItems : platformVersions
-                    .getVaadin().entrySet()) {
-                proItems.getValue().setName(proItems.getKey());
-                platformItems.add(proItems.getValue());
-            }
-
-        }
-        return platformItems;
+    public PlatformItemsResult getVersionsFromLatestRelease() {
+        return getVersionsIn(GHHelper.getLatestRelease());
     }
 
-    private PlatformVersions request(String requestUrl) {
-        HttpURLConnection con = null;
-        try {
-            URL url = new URL(requestUrl);
-            con = (HttpURLConnection) url.openConnection();
-            con.setRequestMethod("GET");
-            if (con.getResponseCode() == 200) {
-                try (BufferedReader in = new BufferedReader(
-                        new InputStreamReader(con.getInputStream()))) {
-                    String inputLine;
-                    StringBuilder response = new StringBuilder();
-                    while ((inputLine = in.readLine()) != null) {
-                        response.append(inputLine);
-                    }
-                    String s = response.toString();
-                    return new ObjectMapper()
-                            .readValue(s, PlatformVersions.class);
-                }
-            }
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (ProtocolException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (con != null) {
-                con.disconnect();
-            }
+    @NotNull
+    public List<String> getReleases() {
+        return GHHelper.getReleases();
+    }
+
+    @NotNull
+    public PlatformItemsResult getVersionsIn(String version) {
+        PlatformVersions platformVersions = getPlatformVersions(version);
+        List<PlatformItem> platformItems = constructPlatformItems(
+                platformVersions);
+        return new PlatformItemsResult(version, platformItems);
+    }
+
+    private List<PlatformItem> constructPlatformItems(
+            PlatformVersions platformVersionsObject) {
+        if (platformVersionsObject == null) {
+            return Collections.emptyList();
         }
-        return null;
+        return platformVersionsObject.asPlatformItems();
+    }
+
+    private PlatformVersions getPlatformVersions(String version) {
+        String versions = GHHelper.getVersionsJson(version);
+        try {
+            PlatformVersions platformVersions = new ObjectMapper()
+                    .readValue(versions, PlatformVersions.class);
+            platformVersions.setPlatform(version);
+            return platformVersions;
+        } catch (IOException e) {
+            LoggerFactory.getLogger(VersionService.class)
+                    .error("Can't get platform versions.json", e);
+            return null;
+        }
     }
 }

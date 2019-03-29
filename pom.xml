@@ -5,10 +5,10 @@
 
     <packaging>jar</packaging>
     <groupId>com.vaadin</groupId>
-    <artifactId>base-starter-connect</artifactId>
+    <artifactId>vaadin-platform-version</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Vaadin Connect Starter</name>
-    <description>Vaadin Connect Starter</description>
+    <name>Vaadin Platform Version</name>
+    <description>Vaadin Platform Version</description>
     <url>http://vaadin.com</url>
 
     <parent>
@@ -104,6 +104,11 @@
             <groupId>org.springframework.security.oauth.boot</groupId>
             <artifactId>spring-security-oauth2-autoconfigure</artifactId>
             <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.8.1</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

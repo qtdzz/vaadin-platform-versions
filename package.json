@@ -21,12 +21,10 @@
     "test:unit": "connect-scripts test:unit"
   },
   "dependencies": {
+    "@polymer/paper-badge": "^3.0.1",
     "@ungap/url-search-params": "^0.1.2",
     "@vaadin/connect": "0.9.4",
-    "@vaadin/vaadin-button": "^2.1.4",
-    "@vaadin/vaadin-login": "^1.0.0",
-    "@vaadin/vaadin-text-field": "^2.3.5",
-    "@vaadin/vaadin-themable-mixin": "^1.4.4",
+    "@vaadin/vaadin": "^13.0.2",
     "@webcomponents/webcomponentsjs": "^2.2.7",
     "abortcontroller-polyfill": "^1.2.9",
     "lit-element": "^2.0.1",

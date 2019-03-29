@@ -39,6 +39,11 @@ public class VersionService {
     }
 
     @NotNull
+    public String getLatestVersion() {
+        return GHHelper.getLatestRelease();
+    }
+
+    @NotNull
     public PlatformItemsResult getVersionsIn(String version) {
         PlatformVersions platformVersions = getPlatformVersions(version);
         List<PlatformItem> platformItems = constructPlatformItems(

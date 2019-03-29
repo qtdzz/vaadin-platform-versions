@@ -10,8 +10,14 @@ export class VersionController {
   ) {}
 
   async setPlatformItems(platformVersion: string, column: number): Promise<void> {
-    const items = (await versionService.getVersionsIn(platformVersion));
-    this.setPlatformItemsCallback(items, column);
+    const cached = localStorage.getItem(platformVersion);
+    if (cached) {
+      this.setPlatformItemsCallback(JSON.parse(cached) as PlatformItemsResult, column);
+    } else {
+      const items = (await versionService.getVersionsIn(platformVersion));
+      localStorage.setItem(items.platformVersion, JSON.stringify(items));
+      this.setPlatformItemsCallback(items, column);
+    }
   }
 
   async setReleasedVersions(): Promise<void> {
@@ -20,7 +26,7 @@ export class VersionController {
   }
 
   async setPlatformItemsForLatestRelease(column: number): Promise<void> {
-    const items = (await versionService.getVersionsFromLatestRelease());
-    this.setPlatformItemsCallback(items, column);
+    const latestVersion = (await versionService.getLatestVersion());
+    this.setPlatformItems(latestVersion, column);
   }
 }

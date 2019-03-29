@@ -5,6 +5,8 @@ import '@vaadin/vaadin-grid/vaadin-grid.js';
 import '@vaadin/vaadin-grid/vaadin-grid-column.js';
 import '@vaadin/vaadin-button/vaadin-button.js';
 import '@vaadin/vaadin-combo-box/vaadin-combo-box.js';
+import '@vaadin/vaadin-ordered-layout/vaadin-vertical-layout.js';
+import '@vaadin/vaadin-ordered-layout/vaadin-horizontal-layout.js';
 import './version-controller';
 import '@polymer/paper-badge';
 import { VersionController } from './version-controller';
@@ -17,6 +19,7 @@ export class VersionViewElement extends LitElement {
     this.setItems.bind(this),
     this.setReleasedVersions.bind(this)
   );
+
   createRenderRoot() {return this;}
 
   @property() numOfColumn: number = 1;
@@ -25,13 +28,17 @@ export class VersionViewElement extends LitElement {
 
   @query('vaadin-combo-box')
   vaadinComboBox?: any;
+
   private columnData: {[key: string]: {[key: string] : PlatformItem}} = {};
   private versionsArray: String[] = [];
+
   render() {
     return html`
-      <div style="height: 100vh;">
-        <vaadin-combo-box label="All released versions"></vaadin-combo-box>
-        <vaadin-button @click="${this.onUpdateClick}">Add to compare</vaadin-button>
+      <vaadin-vertical-layout style="height: 100vh;" theme="spacing">
+        <vaadin-horizontal-layout theme="spacing">
+          <vaadin-combo-box></vaadin-combo-box>
+          <vaadin-button @click="${this.onUpdateClick}">Add to compare</vaadin-button>
+        </vaadin-horizontal-layout>
         <vaadin-grid style="height: 100%;" theme="row-stripes">
           <vaadin-grid-column>
           <template class="header">Product name</template>
@@ -55,7 +62,7 @@ export class VersionViewElement extends LitElement {
             </vaadin-grid-column>
           `)};
         </vaadin-grid>
-      </div>
+      </vaadin-vertical-layout>
       <custom-style>
         <style is="custom-style">
           .badge-green {
@@ -105,7 +112,6 @@ export class VersionViewElement extends LitElement {
     });
     this.vaadinComboBox.items = versionsArray;
     this.versionsArray = versionsArray;
-    this.vaadinGrid.querySelector(`#versionSelector0`).items = versionsArray;
   }
 
   async onUpdateClick(): Promise<void> {

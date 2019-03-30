@@ -15,6 +15,7 @@ import java.util.List;
 
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,10 +46,14 @@ public class VersionService {
 
     @NotNull
     public PlatformItemsResult getVersionsIn(String version) {
-        PlatformVersions platformVersions = getPlatformVersions(version);
+        String platFormVersion = version;
+        if (StringUtils.equalsIgnoreCase(version, "latest")) {
+            platFormVersion = getLatestVersion();
+        }
+        PlatformVersions platformVersions = getPlatformVersions(platFormVersion);
         List<PlatformItem> platformItems = constructPlatformItems(
                 platformVersions);
-        return new PlatformItemsResult(version, platformItems);
+        return new PlatformItemsResult(platFormVersion, platformItems);
     }
 
     private List<PlatformItem> constructPlatformItems(

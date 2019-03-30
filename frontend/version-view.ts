@@ -12,7 +12,7 @@ import '@polymer/paper-badge';
 import { VersionController } from './version-controller';
 import PlatformItem from './generated/com/qtdzz/model/PlatformItem';
 import PlatformItemsResult from './generated/com/qtdzz/model/PlatformItemsResult';
-
+const COLUMN_PREFIX = 'column';
 @customElement('version-view')
 export class VersionViewElement extends LitElement {
   private versionController: VersionController = new VersionController(
@@ -22,7 +22,7 @@ export class VersionViewElement extends LitElement {
 
   createRenderRoot() {return this;}
 
-  @property() numOfColumn: number = 1;
+  @property() columnArray: string[] = ['column0', 'column1'];
   @query('vaadin-grid')
   vaadinGrid?: any;
 
@@ -31,6 +31,7 @@ export class VersionViewElement extends LitElement {
 
   private columnData: {[key: string]: {[key: string] : PlatformItem}} = {};
   private versionsArray: String[] = [];
+  private columnVersionMap: {[key: string]: string} = {'column0': 'latest', 'column1': '10.0.12'};
 
   render() {
     return html`
@@ -50,17 +51,18 @@ export class VersionViewElement extends LitElement {
               </div>
             </template>
           </vaadin-grid-column>
-          ${Array(this.numOfColumn).join('0').split('0').map((_, i) => html`
-            <vaadin-grid-column id="column${i}">
-              <template class="header"><vaadin-combo-box id="versionSelector${i}"></vaadin-combo-box></template>
+          ${this.columnArray.map((key) => html`
+            <div>${key}</div>
+            <vaadin-grid-column id="${key}">
+              <template class="header"><vaadin-combo-box id="versionSelector_${key}"></vaadin-combo-box></template>
               <template>
-                <div hidden="[[!item.data.column${i}.javaVersion]]">Java version: [[item.data.column${i}.javaVersion]]</div>
-                <div hidden="[[!item.data.column${i}.npmName]]">npm package: [[item.data.column${i}.npmName]]:[[item.data.column${i}.npmVersion]]</div>
-                <div hidden="[[!item.data.column${i}.bowerVersion]]">Bower version: [[item.data.column${i}.bowerVersion]]</div>
-                <div hidden="[[!item.data.column${i}.isComponent]]">Component: [[item.data.column${i}.isComponent]]</div>
+                <div hidden="[[!item.data.${key}.javaVersion]]">Java version: [[item.data.${key}.javaVersion]]</div>
+                <div hidden="[[!item.data.${key}.npmName]]">npm package: [[item.data.${key}.npmName]]:[[item.data.${key}.npmVersion]]</div>
+                <div hidden="[[!item.data.${key}.bowerVersion]]">Bower version: [[item.data.${key}.bowerVersion]]</div>
+                <div hidden="[[!item.data.${key}.isComponent]]">Component: [[item.data.${key}.isComponent]]</div>
               </template>
             </vaadin-grid-column>
-          `)};
+          `)}
         </vaadin-grid>
       </vaadin-vertical-layout>
       <custom-style>
@@ -79,17 +81,17 @@ export class VersionViewElement extends LitElement {
     `;
   }
 
-  private setItems(result: PlatformItemsResult, column: number) {
+  private setItems(result: PlatformItemsResult, column: string) {
     const currentComponentList = result.platformItems.map( i=> !!i ? i.name : "");
     for (var property in this.columnData) {
       if (this.columnData.hasOwnProperty(property) && !currentComponentList.includes(property)) {
-        this.columnData[property][`column${column}`] = {isPro: false, isComponent: false};
+        this.columnData[property][column] = {isPro: false, isComponent: false};
       }
     }
     result.platformItems.forEach(i => {
       if (i && i.name) {
         const itemsOfThisComponent = this.columnData[i.name] || [];
-        itemsOfThisComponent[`column${column}`] = i;
+        itemsOfThisComponent[column] = i;
         this.columnData[i.name] = itemsOfThisComponent;
       }
     });
@@ -100,7 +102,6 @@ export class VersionViewElement extends LitElement {
       }
     }
     this.vaadinGrid.items = arrayItems;
-    this.vaadinGrid.querySelector(`#versionSelector${column}`).selectedItem = result.platformVersion;
   }
 
   private setReleasedVersions(versions: Array<String | null>) {
@@ -115,12 +116,15 @@ export class VersionViewElement extends LitElement {
   }
 
   async onUpdateClick(): Promise<void> {
-    this.numOfColumn++;
-    const currentColumn = this.numOfColumn - 1;
-    this.versionController.setPlatformItems(this.vaadinComboBox.selectedItem, currentColumn);
+    const currentColumn = COLUMN_PREFIX + this.columnArray.length;
+    const newlyAddedVersion = this.vaadinComboBox.selectedItem;
+    this.columnArray.push(currentColumn);
+    this.requestUpdate();
+    this.versionController.setPlatformItems(newlyAddedVersion, currentColumn);
     setTimeout(() => {
-      const newComboBox = this.vaadinGrid.querySelector(`#versionSelector${currentColumn}`);
+      const newComboBox = this.vaadinGrid.querySelector(`#versionSelector_${currentColumn}`);
       newComboBox.items = this.versionsArray;
+      newComboBox.selectedItem = newlyAddedVersion;
       newComboBox.addEventListener('value-changed', (e: any) => {
         if (e.detail.value) {
           this.versionController.setPlatformItems(e.detail.value, currentColumn);
@@ -133,16 +137,19 @@ export class VersionViewElement extends LitElement {
 
   async firstUpdated(): Promise<void> {
     await this.versionController.setReleasedVersions();
-    await this.versionController.setPlatformItemsForLatestRelease(0);
-    for(let i = 0; i < this.numOfColumn; i++) {
-      this.vaadinGrid.querySelector(`#versionSelector${i}`).addEventListener('value-changed', (e: any) => {
+    Object.keys(this.columnVersionMap).forEach((key) => {
+      this.versionController.setPlatformItems(this.columnVersionMap[key], key);
+      const columnComboBox = this.vaadinGrid.querySelector(`#versionSelector_${key}`);
+      columnComboBox.items = this.versionsArray;
+      columnComboBox.selectedItem = this.columnVersionMap[key];
+      columnComboBox.addEventListener('value-changed', (e: any) => {
         if (e.detail.value) {
-          this.versionController.setPlatformItems(e.detail.value, i);
+          this.versionController.setPlatformItems(e.detail.value, `${key}`);
         } else {
-          this.versionController.setPlatformItemsForLatestRelease(i);
+          this.versionController.setPlatformItemsForLatestRelease(`${key}`);
         }
       });
-    }
+    });
   }
 
 }

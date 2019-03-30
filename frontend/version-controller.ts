@@ -1,7 +1,7 @@
 import * as versionService from './generated/VersionService';
 import PlatformItemsResult from './generated/com/qtdzz/model/PlatformItemsResult';
 
-export type SetPlatformItemsCallback = (items: PlatformItemsResult, column: number) => void;
+export type SetPlatformItemsCallback = (items: PlatformItemsResult, column: string) => void;
 export type setReleasedVersionsCallback = (versions: Array<String | null>) => void;
 export class VersionController {
   constructor(
@@ -9,7 +9,7 @@ export class VersionController {
     private setReleasedVersionsCallback: setReleasedVersionsCallback
   ) {}
 
-  async setPlatformItems(platformVersion: string, column: number): Promise<void> {
+  async setPlatformItems(platformVersion: string, column: string): Promise<void> {
     const cached = localStorage.getItem(platformVersion);
     if (cached) {
       this.setPlatformItemsCallback(JSON.parse(cached) as PlatformItemsResult, column);
@@ -25,7 +25,7 @@ export class VersionController {
     this.setReleasedVersionsCallback(versions);
   }
 
-  async setPlatformItemsForLatestRelease(column: number): Promise<void> {
+  async setPlatformItemsForLatestRelease(column: string): Promise<void> {
     const latestVersion = (await versionService.getLatestVersion());
     this.setPlatformItems(latestVersion, column);
   }

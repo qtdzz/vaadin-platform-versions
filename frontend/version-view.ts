@@ -36,10 +36,15 @@ export class VersionViewElement extends LitElement {
   render() {
     return html`
       <vaadin-vertical-layout style="height: 100vh;" theme="spacing">
-        <vaadin-horizontal-layout theme="spacing">
-          <vaadin-combo-box></vaadin-combo-box>
-          <vaadin-button @click="${this.onUpdateClick}">Add to compare</vaadin-button>
-        </vaadin-horizontal-layout>
+        <div style="display: flex; width: 100%;">
+          <div style="flex-grow: 1;">
+            <vaadin-horizontal-layout theme="spacing">
+              <vaadin-combo-box></vaadin-combo-box>
+              <vaadin-button @click="${this.onUpdateClick}">Add to compare</vaadin-button>
+            </vaadin-horizontal-layout>
+          </div>
+          <div style="justify-self: flex-end;">flex</div>
+        </div>
         <vaadin-grid style="height: 100%;" theme="row-stripes column-borders">
           <vaadin-grid-column>
           <template class="header">Product name</template>

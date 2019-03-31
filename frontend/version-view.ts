@@ -7,6 +7,7 @@ import '@vaadin/vaadin-button/vaadin-button.js';
 import '@vaadin/vaadin-combo-box/vaadin-combo-box.js';
 import '@vaadin/vaadin-ordered-layout/vaadin-vertical-layout.js';
 import '@vaadin/vaadin-ordered-layout/vaadin-horizontal-layout.js';
+import '@vaadin/vaadin-icons/vaadin-icons.js';
 import './version-controller';
 import '@polymer/paper-badge';
 import { VersionController } from './version-controller';
@@ -43,7 +44,13 @@ export class VersionViewElement extends LitElement {
               <vaadin-button @click="${this.onUpdateClick}">Add to compare</vaadin-button>
             </vaadin-horizontal-layout>
           </div>
-          <div style="justify-self: flex-end;">flex</div>
+          <div>
+            <vaadin-button theme="tertiary-inline" @click="${this.openGithub}">
+              <iron-icon icon="vaadin:cross-cutlery" slot="prefix">
+              </iron-icon>
+              Fix me on GitHub
+            </vaadin-button>
+          </div>
         </div>
         <vaadin-grid style="height: 100%;" theme="row-stripes column-borders">
           <vaadin-grid-column>
@@ -157,6 +164,10 @@ export class VersionViewElement extends LitElement {
         }
       });
     });
+  }
+
+  async openGithub(): Promise<void> {
+    window.open('https://github.com/qtdzz/vaadin-platform-versions', '_blank');
   }
 
 }

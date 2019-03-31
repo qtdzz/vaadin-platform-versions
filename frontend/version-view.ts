@@ -1,4 +1,4 @@
-import {LitElement, customElement, html, property, query} from 'lit-element';
+import {LitElement, customElement, html, query} from 'lit-element';
 
 
 import '@vaadin/vaadin-grid/vaadin-grid.js';
@@ -9,6 +9,7 @@ import '@vaadin/vaadin-combo-box/vaadin-combo-box.js';
 import '@vaadin/vaadin-ordered-layout/vaadin-vertical-layout.js';
 import '@vaadin/vaadin-ordered-layout/vaadin-horizontal-layout.js';
 import '@vaadin/vaadin-icons/vaadin-icons.js';
+import '@vaadin/vaadin-lumo-styles/icons.js';
 import './version-controller';
 import '@polymer/paper-badge';
 import { VersionController } from './version-controller';
@@ -24,12 +25,17 @@ export class VersionViewElement extends LitElement {
 
   createRenderRoot() {return this;}
 
-  @property() columnArray: string[] = ['column0', 'column1'];
   @query('vaadin-grid')
   vaadinGrid?: any;
 
   @query('vaadin-combo-box')
   vaadinComboBox?: any;
+
+  @query('#addNewVersionButton')
+  addNewVersionButton?: any;
+
+  @query('#removeLastColumnButton')
+  removeLastColumnButton?: any;
 
   private columnData: {[key: string]: {[key: string] : PlatformItem}} = {};
   private versionsArray: String[] = [];
@@ -42,7 +48,16 @@ export class VersionViewElement extends LitElement {
           <div style="flex-grow: 1;">
             <vaadin-horizontal-layout theme="spacing">
               <vaadin-combo-box></vaadin-combo-box>
-              <vaadin-button @click="${this.onUpdateClick}">Add to compare</vaadin-button>
+              <vaadin-button id="addNewVersionButton" @click="${this.onAddNewVersionClick}">
+                <iron-icon icon="lumo:plus" slot="prefix">
+                </iron-icon>
+                Add to compare
+              </vaadin-button>
+              <vaadin-button id="removeLastColumnButton" theme="error" @click="${this.onRemoveLastColumnClick}">
+                <iron-icon icon="lumo:cross" slot="prefix">
+                </iron-icon>
+                Remove last column
+              </vaadin-button>
             </vaadin-horizontal-layout>
           </div>
           <div>
@@ -62,7 +77,7 @@ export class VersionViewElement extends LitElement {
                 </div>
               </template>
           </vaadin-grid-filter-column>
-          ${this.columnArray.map((key) => html`
+          ${Object.keys(this.columnVersionMap).map((key) => html`
             <div>${key}</div>
             <vaadin-grid-column id="${key}">
               <template class="header"><vaadin-combo-box id="versionSelector_${key}" label="Platform version"></vaadin-combo-box></template>
@@ -139,10 +154,10 @@ export class VersionViewElement extends LitElement {
     this.versionsArray = versionsArray;
   }
 
-  async onUpdateClick(): Promise<void> {
-    const currentColumn = COLUMN_PREFIX + this.columnArray.length;
+  async onAddNewVersionClick(): Promise<void> {
+    const currentColumn = COLUMN_PREFIX + Date.now();
     const newlyAddedVersion = this.vaadinComboBox.selectedItem;
-    this.columnArray.push(currentColumn);
+    this.columnVersionMap[currentColumn] = newlyAddedVersion;
     this.requestUpdate();
     this.versionController.setPlatformItems(newlyAddedVersion, currentColumn);
     setTimeout(() => {
@@ -159,8 +174,21 @@ export class VersionViewElement extends LitElement {
     });
   }
 
+  async onRemoveLastColumnClick(): Promise<void> {
+    Object.keys(this.columnVersionMap).map( (key: string, index: number, keys: string[]) => {
+      if (index === keys.length - 1) {
+        delete this.columnVersionMap[key];
+      }
+    });
+    this.requestUpdate();
+  }
+
   async firstUpdated(): Promise<void> {
     await this.versionController.setReleasedVersions();
+    this.vaadinComboBox.addEventListener('value-changed', (e: any) => {
+      this.addNewVersionButton.disabled = !e.detail.value;
+    });
+    this.addNewVersionButton.disabled = !this.vaadinComboBox.selectedItem;
     Object.keys(this.columnVersionMap).forEach((key) => {
       this.versionController.setPlatformItems(this.columnVersionMap[key], key);
       const columnComboBox = this.vaadinGrid.querySelector(`#versionSelector_${key}`);
@@ -174,6 +202,10 @@ export class VersionViewElement extends LitElement {
         }
       });
     });
+  }
+
+  async updated() {
+    this.removeLastColumnButton.disabled = Object.keys(this.columnVersionMap).length <= 1;
   }
 
   async openGithub(): Promise<void> {

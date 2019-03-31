@@ -5,10 +5,10 @@
 
     <packaging>jar</packaging>
     <groupId>com.vaadin</groupId>
-    <artifactId>vaadin-platform-version</artifactId>
+    <artifactId>vaadin-platform-versions</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Vaadin Platform Version</name>
-    <description>Vaadin Platform Version</description>
+    <name>Vaadin Platform Versions</name>
+    <description>Vaadin Platform Versions</description>
     <url>http://vaadin.com</url>
 
     <parent>

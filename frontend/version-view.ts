@@ -15,13 +15,22 @@ import '@polymer/paper-badge';
 import { VersionController } from './version-controller';
 import PlatformItem from './generated/com/qtdzz/model/PlatformItem';
 import PlatformItemsResult from './generated/com/qtdzz/model/PlatformItemsResult';
+
 const COLUMN_PREFIX = 'column';
+const VERSIONS_LAYOUT_CACHED = 'com.qtdzz.vaadin-platform-versions.layout';
+const DEFAULT_VERSION_LAYOUT = {'column0': '13.0.2', 'column1': '10.0.12'};
+
 @customElement('version-view')
 export class VersionViewElement extends LitElement {
   private versionController: VersionController = new VersionController(
     this.setItems.bind(this),
     this.setReleasedVersions.bind(this)
   );
+
+  constructor() {
+    super();
+    this.columnVersionMap = this.getCachedLayout();
+  }
 
   createRenderRoot() {return this;}
 
@@ -39,7 +48,7 @@ export class VersionViewElement extends LitElement {
 
   private columnData: {[key: string]: {[key: string] : PlatformItem}} = {};
   private versionsArray: String[] = [];
-  private columnVersionMap: {[key: string]: string} = {'column0': '13.0.2', 'column1': '10.0.12'};
+  private columnVersionMap: {[key: string]: string};
 
   render() {
     return html`
@@ -141,6 +150,7 @@ export class VersionViewElement extends LitElement {
       }
     }
     this.vaadinGrid.items = arrayItems;
+    this.updateColumnVersionMap(column, result.platformVersion);
   }
 
   private setReleasedVersions(versions: Array<String | null>) {
@@ -189,6 +199,7 @@ export class VersionViewElement extends LitElement {
       this.addNewVersionButton.disabled = !e.detail.value;
     });
     this.addNewVersionButton.disabled = !this.vaadinComboBox.selectedItem;
+    this.columnVersionMap = this.getCachedLayout();
     Object.keys(this.columnVersionMap).forEach((key) => {
       this.versionController.setPlatformItems(this.columnVersionMap[key], key);
       const columnComboBox = this.vaadinGrid.querySelector(`#versionSelector_${key}`);
@@ -204,8 +215,33 @@ export class VersionViewElement extends LitElement {
     });
   }
 
+  private getCachedLayout(): {[key: string]: string} {
+    const cachedString = localStorage.getItem(VERSIONS_LAYOUT_CACHED);
+    if (cachedString ) {
+      try {
+        const cachedObject = JSON.parse(cachedString);
+        if (Object.keys(cachedObject).length > 0) {
+          return cachedObject;
+        }
+      } catch(e) {
+        console.debug(`Cannot parse cached layout`, e);
+      }
+    }
+    return DEFAULT_VERSION_LAYOUT;
+  }
+
   async updated() {
     this.removeLastColumnButton.disabled = Object.keys(this.columnVersionMap).length <= 1;
+    this.storeCache();
+  }
+
+  private updateColumnVersionMap(column: string, version: string) {
+    this.columnVersionMap[column] = version;
+    this.storeCache();
+  }
+
+  private storeCache() {
+    localStorage.setItem(VERSIONS_LAYOUT_CACHED, JSON.stringify(this.columnVersionMap));
   }
 
   async openGithub(): Promise<void> {

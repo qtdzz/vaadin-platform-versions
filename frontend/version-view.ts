@@ -31,7 +31,7 @@ export class VersionViewElement extends LitElement {
 
   private columnData: {[key: string]: {[key: string] : PlatformItem}} = {};
   private versionsArray: String[] = [];
-  private columnVersionMap: {[key: string]: string} = {'column0': 'latest', 'column1': '10.0.12'};
+  private columnVersionMap: {[key: string]: string} = {'column0': '13.0.2', 'column1': '10.0.12'};
 
   render() {
     return html`
@@ -40,12 +40,12 @@ export class VersionViewElement extends LitElement {
           <vaadin-combo-box></vaadin-combo-box>
           <vaadin-button @click="${this.onUpdateClick}">Add to compare</vaadin-button>
         </vaadin-horizontal-layout>
-        <vaadin-grid style="height: 100%;" theme="row-stripes">
+        <vaadin-grid style="height: 100%;" theme="row-stripes column-borders">
           <vaadin-grid-column>
           <template class="header">Product name</template>
             <template>
               <div style="display:inline-block;">
-                <span id="product-[[index]]">[[item.name]]</span>
+                <span id="product-[[index]]"><strong>[[item.name]]</strong></span>
                 <paper-badge for="product-[[index]]" class="badge-green" hidden="[[!item.isPro]]" label="PRO">
                 </paper-badge>
               </div>
@@ -56,10 +56,12 @@ export class VersionViewElement extends LitElement {
             <vaadin-grid-column id="${key}">
               <template class="header"><vaadin-combo-box id="versionSelector_${key}"></vaadin-combo-box></template>
               <template>
-                <div hidden="[[!item.data.${key}.javaVersion]]">Java version: [[item.data.${key}.javaVersion]]</div>
-                <div hidden="[[!item.data.${key}.npmName]]">npm package: [[item.data.${key}.npmName]]:[[item.data.${key}.npmVersion]]</div>
-                <div hidden="[[!item.data.${key}.bowerVersion]]">Bower version: [[item.data.${key}.bowerVersion]]</div>
-                <div hidden="[[!item.data.${key}.isComponent]]">Component: [[item.data.${key}.isComponent]]</div>
+                <vaadin-vertical-layout theme="spacing">
+                  <div hidden="[[!item.data.${key}.javaVersion]]">Java version: [[item.data.${key}.javaVersion]]</div>
+                  <div hidden="[[!item.data.${key}.npmName]]">npm package: [[item.data.${key}.npmName]]:[[item.data.${key}.npmVersion]]</div>
+                  <div hidden="[[!item.data.${key}.bowerVersion]]">Bower version: [[item.data.${key}.bowerVersion]]</div>
+                  <div hidden="[[!item.data.${key}.isComponent]]">Component: [[item.data.${key}.isComponent]]</div>
+                </vaadin-vertical-layout>
               </template>
             </vaadin-grid-column>
           `)}

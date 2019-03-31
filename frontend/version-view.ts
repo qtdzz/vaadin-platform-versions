@@ -68,12 +68,13 @@ export class VersionViewElement extends LitElement {
               <template class="header"><vaadin-combo-box id="versionSelector_${key}" label="Platform version"></vaadin-combo-box></template>
               <template>
                 <vaadin-vertical-layout id="item-[[index]]-${key}" theme="spacing padding">
+                  <div hidden="[[item.data.${key}.name]]" class="notAvailable">Not available</div>
                   <img hidden="[[!item.data.${key}.javaVersion]]"
-                     src="https://img.shields.io/static/v1.svg?label=Java&message=[[item.data.${key}.javaVersion]]&color=violet&cacheSeconds=3600&style=for-the-badge"/>
+                     src="https://img.shields.io/static/v1.svg?label=Java&message=[[item.data.${key}.javaVersion]]&color=violet&cacheSeconds=3600&style=popout-square"/>
                   <img hidden="[[!item.data.${key}.npmName]]"
-                     src="https://img.shields.io/static/v1.svg?label=npm&message=[[item.data.${key}.npmName]]:[[item.data.${key}.npmVersion]]&color=green&cacheSeconds=3600&style=for-the-badge"/>
+                     src="https://img.shields.io/static/v1.svg?label=npm&message=[[item.data.${key}.npmName]]:[[item.data.${key}.npmVersion]]&color=green&cacheSeconds=3600&style=popout-square"/>
                   <img hidden="[[!item.data.${key}.bowerVersion]]"
-                     src="https://img.shields.io/static/v1.svg?label=bower&message=[[item.name]]:[[item.data.${key}.bowerVersion]]&color=blue&cacheSeconds=3600&style=for-the-badge"/>
+                     src="https://img.shields.io/static/v1.svg?label=bower&message=[[item.name]]:[[item.data.${key}.bowerVersion]]&color=blue&cacheSeconds=3600&style=popout-square"/>
                 </vaadin-vertical-layout>
                 <paper-badge for="item-[[index]]-${key}" class="badge-green" hidden="[[!item.data.${key}.isPro]]" label="PRO">
               </template>
@@ -85,14 +86,19 @@ export class VersionViewElement extends LitElement {
         <style is="custom-style">
           .badge-green {
             --paper-badge-background: var(--lumo-success-color);
-            --paper-badge-margin-left: 3px;
+            --paper-badge-margin-left: -5px;
             --paper-badge-margin-bottom: -25px;
             --paper-badge-width: 30px;
             --paper-badge: {
-                border-radius: 20%;
+                border-radius: 10%;
                 font-weight: bold;
                 font-size: 13px;
               }
+          }
+          .notAvailable {
+            align-self: center;
+            color: grey;
+            opacity: 0.5;
           }
         </style>
       </custom-style>

@@ -3,6 +3,7 @@ import {LitElement, customElement, html, property, query} from 'lit-element';
 
 import '@vaadin/vaadin-grid/vaadin-grid.js';
 import '@vaadin/vaadin-grid/vaadin-grid-column.js';
+import '@vaadin/vaadin-grid/vaadin-grid-filter-column.js';
 import '@vaadin/vaadin-button/vaadin-button.js';
 import '@vaadin/vaadin-combo-box/vaadin-combo-box.js';
 import '@vaadin/vaadin-ordered-layout/vaadin-vertical-layout.js';
@@ -52,28 +53,29 @@ export class VersionViewElement extends LitElement {
             </vaadin-button>
           </div>
         </div>
-        <vaadin-grid style="height: 100%;" theme="row-stripes column-borders">
-          <vaadin-grid-column>
-          <template class="header">Product name</template>
+        <vaadin-grid style="height: 100%;" theme="row-stripes column-borders wrap-cell-content">
+          <vaadin-grid-filter-column path="name" header="Product name">
             <template>
-              <div style="display:inline-block;">
-                <span id="product-[[index]]"><strong>[[item.name]]</strong></span>
-                <paper-badge for="product-[[index]]" class="badge-green" hidden="[[!item.isPro]]" label="PRO">
-                </paper-badge>
-              </div>
-            </template>
-          </vaadin-grid-column>
+                <div style="display:inline-block;">
+                  <span id="product-[[index]]"><strong>[[item.name]]</strong></span>
+                  </paper-badge>
+                </div>
+              </template>
+          </vaadin-grid-filter-column>
           ${this.columnArray.map((key) => html`
             <div>${key}</div>
             <vaadin-grid-column id="${key}">
-              <template class="header"><vaadin-combo-box id="versionSelector_${key}"></vaadin-combo-box></template>
+              <template class="header"><vaadin-combo-box id="versionSelector_${key}" label="Platform version"></vaadin-combo-box></template>
               <template>
-                <vaadin-vertical-layout theme="spacing">
-                  <div hidden="[[!item.data.${key}.javaVersion]]">Java version: [[item.data.${key}.javaVersion]]</div>
-                  <div hidden="[[!item.data.${key}.npmName]]">npm package: [[item.data.${key}.npmName]]:[[item.data.${key}.npmVersion]]</div>
-                  <div hidden="[[!item.data.${key}.bowerVersion]]">Bower version: [[item.data.${key}.bowerVersion]]</div>
-                  <div hidden="[[!item.data.${key}.isComponent]]">Component: [[item.data.${key}.isComponent]]</div>
+                <vaadin-vertical-layout id="item-[[index]]-${key}" theme="spacing">
+                  <img hidden="[[!item.data.${key}.javaVersion]]"
+                     src="https://img.shields.io/static/v1.svg?label=Java&message=[[item.data.${key}.javaVersion]]&color=violet"/>
+                  <img hidden="[[!item.data.${key}.npmName]]"
+                     src="https://img.shields.io/static/v1.svg?label=npm&message=[[item.data.${key}.npmName]]:[[item.data.${key}.npmVersion]]&color=green"/>
+                  <img hidden="[[!item.data.${key}.bowerVersion]]"
+                     src="https://img.shields.io/static/v1.svg?label=bower&message=[[item.name]]:[[item.data.${key}.bowerVersion]]&color=blue"/>
                 </vaadin-vertical-layout>
+                <paper-badge for="item-[[index]]-${key}" class="badge-green" hidden="[[!item.data.${key}.isPro]]" label="PRO">
               </template>
             </vaadin-grid-column>
           `)}
@@ -83,7 +85,8 @@ export class VersionViewElement extends LitElement {
         <style is="custom-style">
           .badge-green {
             --paper-badge-background: var(--lumo-success-color);
-            --paper-badge-margin-left: 30px;
+            --paper-badge-margin-left: 3px;
+            --paper-badge-margin-bottom: -25px;
             --paper-badge-width: 25px;
             --paper-badge: {
                 border-radius: 20%;

@@ -10,8 +10,8 @@ import '@vaadin/vaadin-ordered-layout/vaadin-vertical-layout.js';
 import '@vaadin/vaadin-ordered-layout/vaadin-horizontal-layout.js';
 import '@vaadin/vaadin-icons/vaadin-icons.js';
 import '@vaadin/vaadin-lumo-styles/icons.js';
+import '@vaadin/vaadin-lumo-styles/badge.js';
 import './version-controller';
-import '@polymer/paper-badge';
 import { VersionController } from './version-controller';
 import PlatformItem from './generated/com/qtdzz/model/PlatformItem';
 import PlatformItemsResult from './generated/com/qtdzz/model/PlatformItemsResult';
@@ -53,46 +53,45 @@ export class VersionViewElement extends LitElement {
   render() {
     return html`
       <vaadin-vertical-layout style="height: 100vh;" theme="spacing">
-        <div style="display: flex; width: 100%;">
+        <vaadin-horizontal-layout theme="spacing" style="width: 100%;">
+          <vaadin-combo-box></vaadin-combo-box>
+          <vaadin-button id="addNewVersionButton" @click="${this.onAddNewVersionClick}">
+            <iron-icon icon="lumo:plus" slot="prefix">
+            </iron-icon>
+            Add to compare
+          </vaadin-button>
+          <vaadin-button
+            id="removeLastColumnButton"
+            theme="error"
+            @click="${this.onRemoveLastColumnClick}"
+            >
+              <iron-icon icon="lumo:cross" slot="prefix">
+              </iron-icon>
+              Remove last column
+          </vaadin-button>
           <div style="flex-grow: 1;">
-            <vaadin-horizontal-layout theme="spacing">
-              <vaadin-combo-box></vaadin-combo-box>
-              <vaadin-button id="addNewVersionButton" @click="${this.onAddNewVersionClick}">
-                <iron-icon icon="lumo:plus" slot="prefix">
-                </iron-icon>
-                Add to compare
-              </vaadin-button>
-              <vaadin-button id="removeLastColumnButton" theme="error" @click="${this.onRemoveLastColumnClick}">
-                <iron-icon icon="lumo:cross" slot="prefix">
-                </iron-icon>
-                Remove last column
-              </vaadin-button>
-            </vaadin-horizontal-layout>
           </div>
-          <div>
-            <vaadin-button theme="tertiary-inline" @click="${this.openGithub}">
+          <vaadin-button theme="tertiary-inline" @click="${this.openGithub}">
               <iron-icon icon="vaadin:cross-cutlery" slot="prefix">
               </iron-icon>
               Fix me on GitHub
             </vaadin-button>
-          </div>
-        </div>
+        </vaadin-horizontal-layout>
         <vaadin-grid style="height: 100%;" theme="row-stripes column-borders wrap-cell-content">
           <vaadin-grid-filter-column path="name" header="Product name">
             <template>
                 <div style="display:inline-block;">
                   <span id="product-[[index]]"><strong>[[item.name]]</strong></span>
-                  </paper-badge>
                 </div>
               </template>
           </vaadin-grid-filter-column>
           ${Object.keys(this.columnVersionMap).map((key) => html`
-            <div>${key}</div>
             <vaadin-grid-column id="${key}">
               <template class="header"><vaadin-combo-box id="versionSelector_${key}" label="Platform version"></vaadin-combo-box></template>
               <template>
                 <vaadin-vertical-layout id="item-[[index]]-${key}" theme="spacing padding">
                   <div hidden="[[item.data.${key}.name]]" class="notAvailable">Not available</div>
+                  <span hidden="[[!item.data.${key}.isPro]]" theme="badge success primary" class="isPro">PRO</span>
                   <img hidden="[[!item.data.${key}.javaVersion]]"
                      src="https://img.shields.io/static/v1.svg?label=Java&message=[[item.data.${key}.javaVersion]]&color=violet&cacheSeconds=3600&style=popout-square"/>
                   <img hidden="[[!item.data.${key}.npmName]]"
@@ -100,13 +99,13 @@ export class VersionViewElement extends LitElement {
                   <img hidden="[[!item.data.${key}.bowerVersion]]"
                      src="https://img.shields.io/static/v1.svg?label=bower&message=[[item.name]]:[[item.data.${key}.bowerVersion]]&color=blue&cacheSeconds=3600&style=popout-square"/>
                 </vaadin-vertical-layout>
-                <paper-badge for="item-[[index]]-${key}" class="badge-green" hidden="[[!item.data.${key}.isPro]]" label="PRO">
               </template>
             </vaadin-grid-column>
           `)}
         </vaadin-grid>
       </vaadin-vertical-layout>
       <custom-style>
+        <style include="lumo-badge"></style>
         <style is="custom-style">
           .badge-green {
             --paper-badge-background: var(--lumo-success-color);
@@ -119,10 +118,18 @@ export class VersionViewElement extends LitElement {
                 font-size: 13px;
               }
           }
+
           .notAvailable {
             align-self: center;
             color: grey;
             opacity: 0.5;
+          }
+
+          .isPro {
+            font-weight: bold;
+            top: -10px;
+            right: 5px;
+            position: absolute;
           }
         </style>
       </custom-style>

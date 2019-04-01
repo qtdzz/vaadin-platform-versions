@@ -55,14 +55,14 @@ export class VersionViewElement extends LitElement {
       <vaadin-vertical-layout style="height: 100vh;" theme="spacing">
         <vaadin-horizontal-layout theme="spacing" style="width: 100%;">
           <vaadin-combo-box></vaadin-combo-box>
-          <vaadin-button id="addNewVersionButton" @click="${this.onAddNewVersionClick}">
+          <vaadin-button id="addNewVersionButton" theme="primary" @click="${this.onAddNewVersionClick}">
             <iron-icon icon="lumo:plus" slot="prefix">
             </iron-icon>
             Add to compare
           </vaadin-button>
           <vaadin-button
             id="removeLastColumnButton"
-            theme="error"
+            theme="primary error"
             @click="${this.onRemoveLastColumnClick}"
             >
               <iron-icon icon="lumo:cross" slot="prefix">
@@ -92,12 +92,15 @@ export class VersionViewElement extends LitElement {
                 <vaadin-vertical-layout id="item-[[index]]-${key}" theme="spacing padding">
                   <div hidden="[[item.data.${key}.name]]" class="notAvailable">Not available</div>
                   <span hidden="[[!item.data.${key}.isPro]]" theme="badge success primary" class="isPro">PRO</span>
-                  <img hidden="[[!item.data.${key}.javaVersion]]"
-                     src="https://img.shields.io/static/v1.svg?label=Java&message=[[item.data.${key}.javaVersion]]&color=violet&cacheSeconds=3600&style=popout-square"/>
-                  <img hidden="[[!item.data.${key}.npmName]]"
-                     src="https://img.shields.io/static/v1.svg?label=npm&message=[[item.data.${key}.npmName]]:[[item.data.${key}.npmVersion]]&color=green&cacheSeconds=3600&style=popout-square"/>
-                  <img hidden="[[!item.data.${key}.bowerVersion]]"
-                     src="https://img.shields.io/static/v1.svg?label=bower&message=[[item.name]]:[[item.data.${key}.bowerVersion]]&color=blue&cacheSeconds=3600&style=popout-square"/>
+                  <span hidden="[[!item.data.${key}.javaVersion]]">
+                    <span theme="badge contrast primary">Java</span><span theme="badge primary java">[[item.data.${key}.javaVersion]]</span>
+                  </span>
+                  <span hidden="[[!item.data.${key}.npmName]]">
+                    <span theme="badge contrast primary">npm</span><span theme="badge primary">[[item.data.${key}.npmName]]:[[item.data.${key}.npmVersion]]</span>
+                  </span>
+                  <span hidden="[[!item.data.${key}.bowerVersion]]">
+                    <span theme="badge contrast primary">Bower</span><span theme="badge success primary">[[item.name]]:[[item.data.${key}.bowerVersion]]</span>
+                  </span>
                 </vaadin-vertical-layout>
               </template>
             </vaadin-grid-column>
@@ -105,7 +108,24 @@ export class VersionViewElement extends LitElement {
         </vaadin-grid>
       </vaadin-vertical-layout>
       <custom-style>
-        <style include="lumo-badge"></style>
+        <style include="lumo-badge">
+          [theme~="badge"] {
+            border-radius: 0;
+          }
+
+          [theme~="badge"][theme~="contrast"][theme~="primary"] {
+            background-color: #686a6d;
+          }
+
+          [theme~="badge"][theme~="primary"][theme~="java"] {
+            background-color: violet;
+          }
+
+          [theme~="badge"][theme~="success"][theme~="primary"][theme~="npm"] {
+            background-color: blue;
+          }
+
+        </style>
         <style is="custom-style">
           .badge-green {
             --paper-badge-background: var(--lumo-success-color);

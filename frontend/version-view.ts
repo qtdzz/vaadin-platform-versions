@@ -18,7 +18,7 @@ import PlatformItemsResult from './generated/com/qtdzz/model/PlatformItemsResult
 
 const COLUMN_PREFIX = 'column';
 const VERSIONS_LAYOUT_CACHED = 'com.qtdzz.vaadin-platform-versions.layout';
-const DEFAULT_VERSION_LAYOUT = {'column0': '13.0.2', 'column1': '10.0.12'};
+const DEFAULT_VERSION_LAYOUT = {'column0': '13.0.3', 'column1': '10.0.12'};
 
 @customElement('version-view')
 export class VersionViewElement extends LitElement {

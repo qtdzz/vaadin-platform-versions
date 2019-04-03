@@ -78,12 +78,7 @@ export class VersionViewElement extends LitElement {
             </vaadin-button>
         </vaadin-horizontal-layout>
         <vaadin-grid style="height: 100%;" theme="row-stripes column-borders wrap-cell-content">
-          <vaadin-grid-filter-column path="name" header="Product name">
-            <template>
-                <div style="display:inline-block;">
-                  <span id="product-[[index]]"><strong>[[item.name]]</strong></span>
-                </div>
-              </template>
+          <vaadin-grid-filter-column path="name" header="Product name" id="productName">
           </vaadin-grid-filter-column>
           ${Object.keys(this.columnVersionMap).map((key) => html`
             <vaadin-grid-column id="${key}" class="dataColumn">
@@ -242,7 +237,8 @@ export class VersionViewElement extends LitElement {
     for (var i = 0; i < columns.length; i++) {
       this.addColumnRenderer(columns[i]);
     }
-    Object.keys(this.columnVersionMap).forEach((key) => {
+    this.addProductNameColumnRenderer();
+    Object.keys(this.columnVersionMap).forEach((key: any) => {
       this.versionController.setPlatformItems(this.columnVersionMap[key], key);
       const columnComboBox = this.vaadinGrid.querySelector(`#versionSelector_${key}`);
       columnComboBox.items = this.versionsArray;
@@ -257,6 +253,14 @@ export class VersionViewElement extends LitElement {
     });
   }
 
+  async addProductNameColumnRenderer() {
+    const columnProductName = document.getElementById('productName') as any;
+    columnProductName.renderer = (root: any, _: any, rowData: any) => {
+      const item = rowData.item;
+      root.innerHTML = `<span class="${item.isJavaDiff || item.isBowerDiff || item.isNpmDiff ? 'diff' : 'same'}"><strong>${item.name}</strong></span>`
+    };
+  }
+
   async addColumnRenderer(gridColumn: any) {
     const key = gridColumn.id;
 
@@ -265,6 +269,7 @@ export class VersionViewElement extends LitElement {
       comboBox.id = `versionSelector_${key}`;
       comboBox.selectedItem = this.columnVersionMap[key];
       comboBox.items = this.versionsArray;
+      comboBox.label = 'Platform version';
       comboBox.addEventListener('value-changed', (e: any) => {
         if (e.detail.value) {
           this.versionController.setPlatformItems(e.detail.value, key);

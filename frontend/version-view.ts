@@ -49,7 +49,7 @@ export class VersionViewElement extends LitElement {
   private columnData: {[key: string]: {[key: string] : PlatformItem}} = {};
   private versionsArray: String[] = [];
   private columnVersionMap: {[key: string]: string};
-
+  // private diffMap: {[key: string]: any} = {};
   render() {
     return html`
       <vaadin-vertical-layout style="height: 100vh;" theme="spacing">
@@ -86,23 +86,7 @@ export class VersionViewElement extends LitElement {
               </template>
           </vaadin-grid-filter-column>
           ${Object.keys(this.columnVersionMap).map((key) => html`
-            <vaadin-grid-column id="${key}">
-              <template class="header"><vaadin-combo-box id="versionSelector_${key}" label="Platform version"></vaadin-combo-box></template>
-              <template>
-                <vaadin-vertical-layout id="item-[[index]]-${key}" theme="spacing padding">
-                  <div hidden="[[item.data.${key}.name]]" class="notAvailable">Not available</div>
-                  <span hidden="[[!item.data.${key}.isPro]]" theme="badge success primary" class="isPro">PRO</span>
-                  <span hidden="[[!item.data.${key}.javaVersion]]">
-                    <span theme="badge contrast primary">Java</span><span theme="badge primary java">[[item.data.${key}.javaVersion]]</span>
-                  </span>
-                  <span hidden="[[!item.data.${key}.npmName]]">
-                    <span theme="badge contrast primary">npm</span><span theme="badge primary">[[item.data.${key}.npmName]]:[[item.data.${key}.npmVersion]]</span>
-                  </span>
-                  <span hidden="[[!item.data.${key}.bowerVersion]]">
-                    <span theme="badge contrast primary">Bower</span><span theme="badge success primary">[[item.name]]:[[item.data.${key}.bowerVersion]]</span>
-                  </span>
-                </vaadin-vertical-layout>
-              </template>
+            <vaadin-grid-column id="${key}" class="dataColumn">
             </vaadin-grid-column>
           `)}
         </vaadin-grid>
@@ -151,6 +135,10 @@ export class VersionViewElement extends LitElement {
             right: 5px;
             position: absolute;
           }
+
+          .same {
+            opacity: 0.5;
+          }
         </style>
       </custom-style>
     `;
@@ -173,11 +161,35 @@ export class VersionViewElement extends LitElement {
     const arrayItems: any[] = [];
     for (var property in this.columnData) {
       if (this.columnData.hasOwnProperty(property)) {
-        arrayItems.push({'name': property, 'data': this.columnData[property]});
+        const gridItems = this.createGridItem(property, this.columnData[property]);
+        arrayItems.push(gridItems);
       }
     }
     this.vaadinGrid.items = arrayItems;
     this.updateColumnVersionMap(column, result.platformVersion);
+  }
+
+  private createGridItem(productName: string, columnObjects: {[key: string]: PlatformItem}) {
+    let javaVersions = [];
+    let bowerVersion = [];
+    let npmVersion = [];
+    for (var col in columnObjects) {
+      if (columnObjects.hasOwnProperty(col)) {
+        javaVersions.push(columnObjects[col].javaVersion);
+        bowerVersion.push(columnObjects[col].bowerVersion);
+        npmVersion.push(columnObjects[col].npmVersion);
+      }
+    }
+    const isJavaDiff = new Set(javaVersions.filter(i => !!i)).size > 1;
+    const isBowerDiff = new Set(bowerVersion.filter(i => !!i)).size > 1;
+    const isNpmDiff = new Set(npmVersion.filter(i => !!i)).size > 1;
+    const result = {'name': productName,
+                    'data': columnObjects,
+                    'isJavaDiff': isJavaDiff,
+                    'isBowerDiff': isBowerDiff,
+                    'isNpmDiff': isNpmDiff
+                  };
+    return result;
   }
 
   private setReleasedVersions(versions: Array<String | null>) {
@@ -226,7 +238,10 @@ export class VersionViewElement extends LitElement {
       this.addNewVersionButton.disabled = !e.detail.value;
     });
     this.addNewVersionButton.disabled = !this.vaadinComboBox.selectedItem;
-    this.columnVersionMap = this.getCachedLayout();
+    const columns = this.vaadinGrid.getElementsByClassName('dataColumn');
+    for (var i = 0; i < columns.length; i++) {
+      this.addColumnRenderer(columns[i]);
+    }
     Object.keys(this.columnVersionMap).forEach((key) => {
       this.versionController.setPlatformItems(this.columnVersionMap[key], key);
       const columnComboBox = this.vaadinGrid.querySelector(`#versionSelector_${key}`);
@@ -240,6 +255,49 @@ export class VersionViewElement extends LitElement {
         }
       });
     });
+  }
+
+  async addColumnRenderer(gridColumn: any) {
+    const key = gridColumn.id;
+
+    gridColumn.headerRenderer = (root: any) => {
+      const comboBox = document.createElement('vaadin-combo-box') as any;
+      comboBox.id = `versionSelector_${key}`;
+      comboBox.selectedItem = this.columnVersionMap[key];
+      comboBox.items = this.versionsArray;
+      comboBox.addEventListener('value-changed', (e: any) => {
+        if (e.detail.value) {
+          this.versionController.setPlatformItems(e.detail.value, key);
+        } else {
+          this.versionController.setPlatformItemsForLatestRelease(key);
+        }
+      });
+      root.appendChild(comboBox);
+    };
+
+    gridColumn.renderer = (root: any, _: any, rowData: any) => {
+      const item = rowData.item;
+      if (!item.data[key]) {
+        return;
+      }
+      let vertical = ''
+      if (item.data[key].javaVersion) {
+        vertical += `<span class="${item.isJavaDiff ? 'diff' : 'same'}">
+                      <span theme="badge contrast primary">Java</span><span theme="badge primary java">${item.data[key].javaVersion}</span>
+                    </span>`;
+      }
+      if (item.data[key].npmName) {
+        vertical += `<span class="${item.isNpmDiff ? 'diff' : 'same'}">
+                      <span theme="badge contrast primary">npm</span><span theme="badge primary">${item.data[key].npmName}:${item.data[key].npmVersion}</span>
+                    </span>`;
+      }
+      if (item.data[key].bowerVersion) {
+        vertical += `<span class="${item.isBowerDiff ? 'diff' : 'same'}">
+                      <span theme="badge contrast primary">Bower</span><span theme="badge success primary">${item.name}:${item.data[key].bowerVersion}</span>
+                    </span>`;
+      }
+      root.innerHTML = `<vaadin-vertical-layout theme="padding spacing">${vertical}</vaadin-vertical-layout>`;
+    };
   }
 
   private getCachedLayout(): {[key: string]: string} {

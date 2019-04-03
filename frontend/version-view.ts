@@ -18,6 +18,8 @@ import PlatformItemsResult from './generated/com/qtdzz/model/PlatformItemsResult
 
 const COLUMN_PREFIX = 'column';
 const VERSIONS_LAYOUT_CACHED = 'com.qtdzz.vaadin-platform-versions.layout';
+const SHOULD_HIGHLIGHT_CACHED = 'com.qtdzz.vaadin-platform-versions.hightlight';
+const SHOULD_HIDE_SAME_VERSION_CACHED = 'com.qtdzz.vaadin-platform-versions.hideSameVersion';
 const DEFAULT_VERSION_LAYOUT = {'column0': '13.0.3', 'column1': '10.0.12'};
 
 @customElement('version-view')
@@ -30,6 +32,8 @@ export class VersionViewElement extends LitElement {
   constructor() {
     super();
     this.columnVersionMap = this.getCachedLayout();
+    this.shouldHighlight = localStorage.getItem(SHOULD_HIGHLIGHT_CACHED) === 'true';
+    this.shouldHideSameVersion = localStorage.getItem(SHOULD_HIDE_SAME_VERSION_CACHED) === 'true';
   }
 
   createRenderRoot() {return this;}
@@ -46,10 +50,17 @@ export class VersionViewElement extends LitElement {
   @query('#removeLastColumnButton')
   removeLastColumnButton?: any;
 
+  @query('#highlightCheckBox')
+  highlightCheckBox?: any;
+  @query('#hideSameCheckBox')
+  hideSameCheckBox?: any;
+
   private columnData: {[key: string]: {[key: string] : PlatformItem}} = {};
   private versionsArray: String[] = [];
   private columnVersionMap: {[key: string]: string};
-  // private diffMap: {[key: string]: any} = {};
+  private shouldHighlight: boolean;
+  private shouldHideSameVersion: boolean;
+
   render() {
     return html`
       <vaadin-vertical-layout style="height: 100vh;" theme="spacing">
@@ -77,6 +88,12 @@ export class VersionViewElement extends LitElement {
               Fix me on GitHub
             </vaadin-button>
         </vaadin-horizontal-layout>
+        <vaadin-checkbox id="highlightCheckBox">
+          Highlight different version rows.
+        </vaadin-checkbox>
+        <vaadin-checkbox id="hideSameCheckBox">
+          Hide rows which has the same versions.
+        </vaadin-checkbox>
         <vaadin-grid style="height: 100%;" theme="row-stripes column-borders wrap-cell-content">
           <vaadin-grid-filter-column path="name" header="Product name" id="productName">
           </vaadin-grid-filter-column>
@@ -106,6 +123,11 @@ export class VersionViewElement extends LitElement {
 
         </style>
         <style is="custom-style">
+
+          html {
+            font-family: var(--lumo-font-family);
+          }
+
           .badge-green {
             --paper-badge-background: var(--lumo-success-color);
             --paper-badge-margin-left: -5px;
@@ -205,17 +227,11 @@ export class VersionViewElement extends LitElement {
     this.requestUpdate();
     this.versionController.setPlatformItems(newlyAddedVersion, currentColumn);
     setTimeout(() => {
-      const newComboBox = this.vaadinGrid.querySelector(`#versionSelector_${currentColumn}`);
-      newComboBox.items = this.versionsArray;
-      newComboBox.selectedItem = newlyAddedVersion;
-      newComboBox.addEventListener('value-changed', (e: any) => {
-        if (e.detail.value) {
-          this.versionController.setPlatformItems(e.detail.value, currentColumn);
-        } else {
-          this.versionController.setPlatformItemsForLatestRelease(currentColumn);
-        }
-      }, 500);
-    });
+      const newColumn = this.vaadinGrid.querySelector(`#${currentColumn}`);
+      if (!newColumn.renderer) {
+        this.addColumnRenderer(newColumn);
+      }
+    }, 500);
   }
 
   async onRemoveLastColumnClick(): Promise<void> {
@@ -238,6 +254,7 @@ export class VersionViewElement extends LitElement {
       this.addColumnRenderer(columns[i]);
     }
     this.addProductNameColumnRenderer();
+    this.addCheckBoxListeners();
     Object.keys(this.columnVersionMap).forEach((key: any) => {
       this.versionController.setPlatformItems(this.columnVersionMap[key], key);
       const columnComboBox = this.vaadinGrid.querySelector(`#versionSelector_${key}`);
@@ -257,7 +274,7 @@ export class VersionViewElement extends LitElement {
     const columnProductName = document.getElementById('productName') as any;
     columnProductName.renderer = (root: any, _: any, rowData: any) => {
       const item = rowData.item;
-      root.innerHTML = `<span class="${item.isJavaDiff || item.isBowerDiff || item.isNpmDiff ? 'diff' : 'same'}"><strong>${item.name}</strong></span>`
+      root.innerHTML = `<span class="${this.shouldHighlight ? (item.isJavaDiff || item.isBowerDiff || item.isNpmDiff ? 'diff' : 'same') : ''}"><strong>${item.name}</strong></span>`
     };
   }
 
@@ -287,22 +304,37 @@ export class VersionViewElement extends LitElement {
       }
       let vertical = ''
       if (item.data[key].javaVersion) {
-        vertical += `<span class="${item.isJavaDiff ? 'diff' : 'same'}">
+        vertical += `<span class="${this.shouldHighlight ? (item.isJavaDiff ? 'diff' : 'same') : ''}">
                       <span theme="badge contrast primary">Java</span><span theme="badge primary java">${item.data[key].javaVersion}</span>
                     </span>`;
       }
       if (item.data[key].npmName) {
-        vertical += `<span class="${item.isNpmDiff ? 'diff' : 'same'}">
+        vertical += `<span class="${this.shouldHighlight ? (item.isNpmDiff ? 'diff' : 'same') : ''}">
                       <span theme="badge contrast primary">npm</span><span theme="badge primary">${item.data[key].npmName}:${item.data[key].npmVersion}</span>
                     </span>`;
       }
       if (item.data[key].bowerVersion) {
-        vertical += `<span class="${item.isBowerDiff ? 'diff' : 'same'}">
+        vertical += `<span class="${this.shouldHighlight ? (item.isBowerDiff ? 'diff' : 'same') : ''}">
                       <span theme="badge contrast primary">Bower</span><span theme="badge success primary">${item.name}:${item.data[key].bowerVersion}</span>
                     </span>`;
       }
       root.innerHTML = `<vaadin-vertical-layout theme="padding spacing">${vertical}</vaadin-vertical-layout>`;
     };
+  }
+
+  async addCheckBoxListeners() {
+    this.highlightCheckBox.checked = this.shouldHighlight;
+    this.highlightCheckBox.addEventListener('checked-changed', (e: any) => {
+      this.shouldHighlight = e.detail.value;
+      localStorage.setItem(SHOULD_HIGHLIGHT_CACHED, e.detail.value);
+      this.vaadinGrid.clearCache();
+    });
+    this.hideSameCheckBox.checked = this.shouldHideSameVersion;
+    this.hideSameCheckBox.addEventListener('checked-changed', (e: any) => {
+      this.shouldHideSameVersion = e.detail.value;
+      localStorage.setItem(SHOULD_HIDE_SAME_VERSION_CACHED, e.detail.value);
+      this.vaadinGrid.clearCache();
+    });
   }
 
   private getCachedLayout(): {[key: string]: string} {

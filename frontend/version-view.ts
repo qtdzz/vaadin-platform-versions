@@ -156,6 +156,11 @@ export class VersionViewElement extends LitElement {
           .same {
             opacity: 0.5;
           }
+
+          .versionList {
+            display: flex;
+            flex-direction: column;
+          }
         </style>
       </custom-style>
     `;
@@ -197,9 +202,9 @@ export class VersionViewElement extends LitElement {
         npmVersion.push(columnObjects[col].npmVersion);
       }
     }
-    const isJavaDiff = new Set(javaVersions.filter(i => !!i)).size > 1;
-    const isBowerDiff = new Set(bowerVersion.filter(i => !!i)).size > 1;
-    const isNpmDiff = new Set(npmVersion.filter(i => !!i)).size > 1;
+    const isJavaDiff = new Set(javaVersions).size > 1;
+    const isBowerDiff = new Set(bowerVersion).size > 1;
+    const isNpmDiff = new Set(npmVersion).size > 1;
     const result = {'name': productName,
                     'data': columnObjects,
                     'isJavaDiff': isJavaDiff,
@@ -218,6 +223,10 @@ export class VersionViewElement extends LitElement {
     });
     this.vaadinComboBox.items = versionsArray;
     this.versionsArray = versionsArray;
+    const versionSelectors = this.vaadinGrid.querySelectorAll('vaadin-combo-box');
+    for (let i = 0; i < versionSelectors.length; i++) {
+      versionSelectors[i].items = versionsArray;
+    }
   }
 
   async onAddNewVersionClick(): Promise<void> {
@@ -244,7 +253,7 @@ export class VersionViewElement extends LitElement {
   }
 
   async firstUpdated(): Promise<void> {
-    await this.versionController.setReleasedVersions();
+    this.versionController.setReleasedVersions();
     this.vaadinComboBox.addEventListener('value-changed', (e: any) => {
       this.addNewVersionButton.disabled = !e.detail.value;
     });
@@ -257,16 +266,6 @@ export class VersionViewElement extends LitElement {
     this.addCheckBoxListeners();
     Object.keys(this.columnVersionMap).forEach((key: any) => {
       this.versionController.setPlatformItems(this.columnVersionMap[key], key);
-      const columnComboBox = this.vaadinGrid.querySelector(`#versionSelector_${key}`);
-      columnComboBox.items = this.versionsArray;
-      columnComboBox.selectedItem = this.columnVersionMap[key];
-      columnComboBox.addEventListener('value-changed', (e: any) => {
-        if (e.detail.value) {
-          this.versionController.setPlatformItems(e.detail.value, `${key}`);
-        } else {
-          this.versionController.setPlatformItemsForLatestRelease(`${key}`);
-        }
-      });
     });
   }
 
@@ -284,10 +283,11 @@ export class VersionViewElement extends LitElement {
     gridColumn.headerRenderer = (root: any) => {
       const comboBox = document.createElement('vaadin-combo-box') as any;
       comboBox.id = `versionSelector_${key}`;
+      comboBox.class = 'versionSelector';
       comboBox.selectedItem = this.columnVersionMap[key];
       comboBox.items = this.versionsArray;
       comboBox.label = 'Platform version';
-      comboBox.addEventListener('value-changed', (e: any) => {
+      comboBox.addEventListener('value-changed', async (e: any) => {
         if (e.detail.value) {
           this.versionController.setPlatformItems(e.detail.value, key);
         } else {
@@ -302,23 +302,27 @@ export class VersionViewElement extends LitElement {
       if (!item.data[key]) {
         return;
       }
-      let vertical = ''
+      if (!item.data[key].name) {
+        root.innerHTML = `<div class="versionList"><span class="notAvailable">Not available</span></div>`;
+        return;
+      }
+      let vertical = '';
       if (item.data[key].javaVersion) {
-        vertical += `<span class="${this.shouldHighlight ? (item.isJavaDiff ? 'diff' : 'same') : ''}">
+        vertical += `<p class="${this.shouldHighlight ? (item.isJavaDiff ? 'diff' : 'same') : ''}">
                       <span theme="badge contrast primary">Java</span><span theme="badge primary java">${item.data[key].javaVersion}</span>
-                    </span>`;
+                    </p>`;
       }
       if (item.data[key].npmName) {
-        vertical += `<span class="${this.shouldHighlight ? (item.isNpmDiff ? 'diff' : 'same') : ''}">
+        vertical += `<p class="${this.shouldHighlight ? (item.isNpmDiff ? 'diff' : 'same') : ''}">
                       <span theme="badge contrast primary">npm</span><span theme="badge primary">${item.data[key].npmName}:${item.data[key].npmVersion}</span>
-                    </span>`;
+                    </p>`;
       }
       if (item.data[key].bowerVersion) {
-        vertical += `<span class="${this.shouldHighlight ? (item.isBowerDiff ? 'diff' : 'same') : ''}">
+        vertical += `<p class="${this.shouldHighlight ? (item.isBowerDiff ? 'diff' : 'same') : ''}">
                       <span theme="badge contrast primary">Bower</span><span theme="badge success primary">${item.name}:${item.data[key].bowerVersion}</span>
-                    </span>`;
+                    </p>`;
       }
-      root.innerHTML = `<vaadin-vertical-layout theme="padding spacing">${vertical}</vaadin-vertical-layout>`;
+      root.innerHTML = `<div class="versionList">${vertical}</div>`;
     };
   }
 

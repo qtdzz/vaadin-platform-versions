@@ -186,6 +186,12 @@ export class VersionViewElement extends LitElement {
     result.platformItems.forEach(i => {
       if (i && i.name) {
         const itemsOfThisComponent = this.columnData[i.name] || [];
+        if (i.npmVersion && i.npmVersion.indexOf("{{version}}") > -1) {
+          i.npmVersion = result.platformVersion;
+        }
+        if (i.bowerVersion && i.bowerVersion.indexOf("{{version}}") > -1) {
+          i.bowerVersion = result.platformVersion;
+        }
         itemsOfThisComponent[column] = i;
         this.columnData[i.name] = itemsOfThisComponent;
       }
@@ -342,6 +348,9 @@ export class VersionViewElement extends LitElement {
         const bowerItem = `<span theme="badge contrast primary">Bower</span><span theme="badge success primary">${item.name}:${item.data[key].bowerVersion}</span>`;
         vertical += this.createVersionItemWrapper(item.isBowerDiff, bowerItem);;
       }
+      if (item.name === 'vaadin-designer') {
+        vertical += this.createDesignerVersionItem();
+      }
       root.innerHTML = `<div class="versionList">${vertical}</div>`;
     };
   }
@@ -400,4 +409,13 @@ export class VersionViewElement extends LitElement {
     window.open('https://github.com/qtdzz/vaadin-platform-versions', '_blank');
   }
 
+  private createDesignerVersionItem() {
+    let content = `<p><a href="https://vaadin.com/designer" target="_blank">
+                    <img border="0"= alt="Vaadin Designer in Eclipse Marketplace" src="/images/logo-vaadin.png" width="100"></p>`;
+    content += `<p><a href="https://marketplace.eclipse.org/content/vaadin-plugin-eclipse" target="_blank">
+                  <img border="0"= alt="Vaadin Designer in Eclipse Marketplace" src="/images/logo-eclipse.png" width="100"></a></p>`;
+    content += `<p><a href="https://plugins.jetbrains.com/plugin/9519-vaadin-designer" target="_blank">
+                  <img border="0"= alt="Vaadin Designer Intellij IDEA plugin" src="/images/logo-intellij.png" width="100"></a></p>`
+    return content;
+  }
 }

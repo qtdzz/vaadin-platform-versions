@@ -11,6 +11,7 @@ import '@vaadin/vaadin-ordered-layout/vaadin-horizontal-layout.js';
 import '@vaadin/vaadin-icons/vaadin-icons.js';
 import '@vaadin/vaadin-lumo-styles/icons.js';
 import '@vaadin/vaadin-lumo-styles/badge.js';
+import '@polymer/paper-toggle-button/paper-toggle-button.js'
 import './version-controller';
 import { VersionController } from './version-controller';
 import PlatformItem from './generated/com/qtdzz/model/PlatformItem';
@@ -88,12 +89,12 @@ export class VersionViewElement extends LitElement {
               Fix me on GitHub
             </vaadin-button>
         </vaadin-horizontal-layout>
-        <vaadin-checkbox id="highlightCheckBox">
-          Highlight different version rows.
-        </vaadin-checkbox>
-        <vaadin-checkbox id="hideSameCheckBox">
-          Hide rows which has the same versions.
-        </vaadin-checkbox>
+        <paper-toggle-button class="lumo" id="highlightCheckBox" ?checked=${this.shouldHighlight}>
+          Highlight different versions.
+        </paper-toggle-button>
+        <paper-toggle-button class="lumo" id="hideSameCheckBox" ?checked=${this.shouldHideSameVersion}>
+          Hide same versions.
+        </paper-toggle-button>
         <vaadin-grid style="height: 100%;" theme="row-stripes column-borders wrap-cell-content">
           <vaadin-grid-filter-column path="name" header="Product name" id="productName">
           </vaadin-grid-filter-column>
@@ -160,6 +161,12 @@ export class VersionViewElement extends LitElement {
           .versionList {
             display: flex;
             flex-direction: column;
+          }
+
+          paper-toggle-button.lumo {
+            --paper-toggle-button-checked-bar-color:  var(--lumo-primary-color);
+            --paper-toggle-button-checked-button-color:  var(--lumo-primary-color);
+            --paper-toggle-button-checked-ink-color: var(--lumo-primary-color-50pct);
           }
         </style>
       </custom-style>
@@ -327,13 +334,11 @@ export class VersionViewElement extends LitElement {
   }
 
   async addCheckBoxListeners() {
-    this.highlightCheckBox.checked = this.shouldHighlight;
     this.highlightCheckBox.addEventListener('checked-changed', (e: any) => {
       this.shouldHighlight = e.detail.value;
       localStorage.setItem(SHOULD_HIGHLIGHT_CACHED, e.detail.value);
       this.vaadinGrid.clearCache();
     });
-    this.hideSameCheckBox.checked = this.shouldHideSameVersion;
     this.hideSameCheckBox.addEventListener('checked-changed', (e: any) => {
       this.shouldHideSameVersion = e.detail.value;
       localStorage.setItem(SHOULD_HIDE_SAME_VERSION_CACHED, e.detail.value);

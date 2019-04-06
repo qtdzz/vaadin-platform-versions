@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@polymer/paper-badge": "^3.0.1",
+    "@polymer/paper-toggle-button": "^3.0.1",
     "@ungap/url-search-params": "^0.1.2",
     "@vaadin/connect": "0.9.4",
     "@vaadin/vaadin": "^13.0.2",

@@ -149,7 +149,6 @@ export class VersionViewElement extends LitElement {
 
           .isPro {
             font-weight: bold;
-            top: -10px;
             right: 5px;
             position: absolute;
           }
@@ -328,6 +327,9 @@ export class VersionViewElement extends LitElement {
         return;
       }
       let vertical = '';
+      if (item.data[key].isPro) {
+        vertical += `<span theme="badge success primary" class="isPro">PRO</span>`;
+      }
       if (item.data[key].javaVersion) {
         const javaItem = `<span theme="badge contrast primary">Java</span><span theme="badge primary java">${item.data[key].javaVersion}</span>`;
         vertical += this.createVersionItemWrapper(item.isJavaDiff, javaItem);

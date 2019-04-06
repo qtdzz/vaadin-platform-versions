@@ -1,6 +1,5 @@
 import {LitElement, customElement, html, query} from 'lit-element';
 
-
 import '@vaadin/vaadin-grid/vaadin-grid.js';
 import '@vaadin/vaadin-grid/vaadin-grid-column.js';
 import '@vaadin/vaadin-grid/vaadin-grid-filter-column.js';

@@ -61,7 +61,7 @@ export class VersionViewElement extends LitElement {
   private columnVersionMap: {[key: string]: string};
   private shouldHighlight: boolean;
   private shouldHideSameVersion: boolean;
-
+  private gridItems: any[] = [];
   render() {
     return html`
       <vaadin-vertical-layout style="height: 100vh;" theme="spacing">
@@ -158,6 +158,10 @@ export class VersionViewElement extends LitElement {
             opacity: 0.5;
           }
 
+          .same.hide {
+            display: none;
+          }
+
           .versionList {
             display: flex;
             flex-direction: column;
@@ -194,7 +198,8 @@ export class VersionViewElement extends LitElement {
         arrayItems.push(gridItems);
       }
     }
-    this.vaadinGrid.items = arrayItems;
+    this.gridItems = arrayItems;
+    this.vaadinGrid.items = arrayItems.filter(i => !i.shouldHide);
     this.updateColumnVersionMap(column, result.platformVersion);
   }
 
@@ -216,9 +221,18 @@ export class VersionViewElement extends LitElement {
                     'data': columnObjects,
                     'isJavaDiff': isJavaDiff,
                     'isBowerDiff': isBowerDiff,
-                    'isNpmDiff': isNpmDiff
+                    'isNpmDiff': isNpmDiff,
+                    'shouldHide': (!isJavaDiff && !isNpmDiff && !isBowerDiff) && this.shouldHideSameVersion
                   };
     return result;
+  }
+
+  private rebuildGridItem() {
+    const items = this.gridItems.map((i: any) => {
+      i.shouldHide = (!i.isJavaDiff && !i.isNpmDiff && !i.isBowerDiff) && this.shouldHideSameVersion;
+      return i;
+    });
+    this.vaadinGrid.items = items.filter(i => !i.shouldHide);
   }
 
   private setReleasedVersions(versions: Array<String | null>) {
@@ -280,7 +294,7 @@ export class VersionViewElement extends LitElement {
     const columnProductName = document.getElementById('productName') as any;
     columnProductName.renderer = (root: any, _: any, rowData: any) => {
       const item = rowData.item;
-      root.innerHTML = `<span class="${this.shouldHighlight ? (item.isJavaDiff || item.isBowerDiff || item.isNpmDiff ? 'diff' : 'same') : ''}"><strong>${item.name}</strong></span>`
+      root.innerHTML = `<span class="${this.shouldHighlight ? (item.isJavaDiff || item.isBowerDiff || item.isNpmDiff ? 'diff' : 'same') : ''}"><strong>${item.name}</strong></span>`;
     };
   }
 
@@ -315,22 +329,26 @@ export class VersionViewElement extends LitElement {
       }
       let vertical = '';
       if (item.data[key].javaVersion) {
-        vertical += `<p class="${this.shouldHighlight ? (item.isJavaDiff ? 'diff' : 'same') : ''}">
-                      <span theme="badge contrast primary">Java</span><span theme="badge primary java">${item.data[key].javaVersion}</span>
-                    </p>`;
+        const javaItem = `<span theme="badge contrast primary">Java</span><span theme="badge primary java">${item.data[key].javaVersion}</span>`;
+        vertical += this.createVersionItemWrapper(item.isJavaDiff, javaItem);
       }
       if (item.data[key].npmName) {
-        vertical += `<p class="${this.shouldHighlight ? (item.isNpmDiff ? 'diff' : 'same') : ''}">
-                      <span theme="badge contrast primary">npm</span><span theme="badge primary">${item.data[key].npmName}:${item.data[key].npmVersion}</span>
-                    </p>`;
+        const npmItem = `<span theme="badge contrast primary">npm</span><span theme="badge primary">${item.data[key].npmName}:${item.data[key].npmVersion}</span>`;
+        vertical += this.createVersionItemWrapper(item.isNpmDiff, npmItem);
       }
       if (item.data[key].bowerVersion) {
-        vertical += `<p class="${this.shouldHighlight ? (item.isBowerDiff ? 'diff' : 'same') : ''}">
-                      <span theme="badge contrast primary">Bower</span><span theme="badge success primary">${item.name}:${item.data[key].bowerVersion}</span>
-                    </p>`;
+        const bowerItem = `<span theme="badge contrast primary">Bower</span><span theme="badge success primary">${item.name}:${item.data[key].bowerVersion}</span>`;
+        vertical += this.createVersionItemWrapper(item.isBowerDiff, bowerItem);;
       }
       root.innerHTML = `<div class="versionList">${vertical}</div>`;
     };
+  }
+
+  private createVersionItemWrapper(diff: boolean, content: string): string {
+    let wrapperContent = `<p class="${this.shouldHighlight ? (diff ? 'diff' : 'same') : ''}">`;
+    wrapperContent += content;
+    wrapperContent += "</p>";
+    return wrapperContent;
   }
 
   async addCheckBoxListeners() {
@@ -342,6 +360,7 @@ export class VersionViewElement extends LitElement {
     this.hideSameCheckBox.addEventListener('checked-changed', (e: any) => {
       this.shouldHideSameVersion = e.detail.value;
       localStorage.setItem(SHOULD_HIDE_SAME_VERSION_CACHED, e.detail.value);
+      this.rebuildGridItem();
       this.vaadinGrid.clearCache();
     });
   }

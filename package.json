@@ -21,6 +21,7 @@
     "test:unit": "connect-scripts test:unit"
   },
   "dependencies": {
+    "@polymer/iron-pages": "^3.0.1",
     "@polymer/paper-badge": "^3.0.1",
     "@polymer/paper-toggle-button": "^3.0.1",
     "@ungap/url-search-params": "^0.1.2",

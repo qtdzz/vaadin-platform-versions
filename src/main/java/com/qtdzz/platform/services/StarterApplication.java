@@ -1,4 +1,4 @@
-package com.vaadin.connect.starter;
+package com.qtdzz.platform.services;
 
 import com.vaadin.connect.auth.server.EnableVaadinConnectOAuthServer;
 import org.springframework.boot.SpringApplication;

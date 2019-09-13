@@ -13,14 +13,14 @@ import '@vaadin/vaadin-lumo-styles/badge.js';
 import '@polymer/paper-toggle-button/paper-toggle-button.js'
 import './version-controller';
 import { VersionController } from './version-controller';
-import PlatformItem from './generated/com/qtdzz/model/PlatformItem';
-import PlatformItemsResult from './generated/com/qtdzz/model/PlatformItemsResult';
+import PlatformItem from './generated/com/qtdzz/platform/model/PlatformItem';
+import PlatformItemsResult from './generated/com/qtdzz/platform/model/PlatformItemsResult';
 
 const COLUMN_PREFIX = 'column';
 const VERSIONS_LAYOUT_CACHED = 'com.qtdzz.vaadin-platform-versions.layout';
 const SHOULD_HIGHLIGHT_CACHED = 'com.qtdzz.vaadin-platform-versions.hightlight';
 const SHOULD_HIDE_SAME_VERSION_CACHED = 'com.qtdzz.vaadin-platform-versions.hideSameVersion';
-const DEFAULT_VERSION_LAYOUT = {'column0': '13.0.3', 'column1': '10.0.12'};
+const DEFAULT_VERSION_LAYOUT = {'column0': '10.0.17', 'column1': '14.0.4'};
 
 @customElement('version-view')
 export class VersionViewElement extends LitElement {

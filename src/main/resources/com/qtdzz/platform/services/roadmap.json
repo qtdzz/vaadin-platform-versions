@@ -1,0 +1,39 @@
+[{
+    "major": 10,
+    "gaDate": "26-06-2018",
+    "endDate": "01-06-2023",
+    "isLTS": true,
+    "extendedDate": "25-06-2033"
+  }, {
+    "major": 11,
+    "gaDate": "05-09-2018",
+    "endDate": "01-01-2019",
+    "isLTS": false
+  }, {
+    "major": 12,
+    "gaDate": "05-12-2018",
+    "endDate": "01-04-2019",
+    "isLTS": false
+  }, {
+    "major": 13,
+    "gaDate": "06-03-2019",
+    "endDate": "11-09-2019",
+    "isLTS": false
+  }, {
+    "major": 14,
+    "gaDate": "14-08-2019",
+    "endDate": "01-06-2024",
+    "isLTS": true,
+    "extendedDate": "14-08-2034"
+  }, {
+    "major": 15,
+    "gaDate": "04-10-2019",
+    "endDate": "01-01-2020",
+    "isLTS": false
+  }, {
+    "major": 16,
+    "gaDate": "04-03-2020",
+    "endDate": "04-07-2020",
+    "isLTS": false
+  }
+]

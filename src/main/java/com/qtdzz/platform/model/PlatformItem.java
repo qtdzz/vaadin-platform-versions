@@ -1,4 +1,4 @@
-package com.qtdzz.model;
+package com.qtdzz.platform.model;
 
 import java.util.Map;
 

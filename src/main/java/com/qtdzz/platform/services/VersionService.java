@@ -9,27 +9,23 @@
  *******************************************************************************/
 package com.qtdzz.platform.services;
 
-import java.io.File;
+import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import javax.validation.constraints.NotNull;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.qtdzz.platform.model.PlatformItem;
+import com.qtdzz.platform.model.PlatformItemsResult;
+import com.qtdzz.platform.model.PlatformVersions;
 import com.qtdzz.platform.model.RoadmapItem;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.qtdzz.platform.model.PlatformItem;
-import com.qtdzz.platform.model.PlatformItemsResult;
-import com.qtdzz.platform.model.PlatformVersions;
 import com.vaadin.connect.VaadinService;
 import com.vaadin.connect.auth.AnonymousAllowed;
 
@@ -37,7 +33,6 @@ import com.vaadin.connect.auth.AnonymousAllowed;
 @AnonymousAllowed
 public class VersionService {
     private static final String ROAD_MAP_FILE = "roadmap.json";
-    private static final String STATUS_FILE = "status.json";
 
     @NotNull
     public PlatformItemsResult getVersionsFromLatestRelease() {

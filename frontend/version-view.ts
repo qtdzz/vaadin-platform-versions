@@ -20,7 +20,7 @@ const COLUMN_PREFIX = 'column';
 const VERSIONS_LAYOUT_CACHED = 'com.qtdzz.vaadin-platform-versions.layout';
 const SHOULD_HIGHLIGHT_CACHED = 'com.qtdzz.vaadin-platform-versions.hightlight';
 const SHOULD_HIDE_SAME_VERSION_CACHED = 'com.qtdzz.vaadin-platform-versions.hideSameVersion';
-const DEFAULT_VERSION_LAYOUT = {'column0': '13.0.3', 'column1': '10.0.12'};
+const DEFAULT_VERSION_LAYOUT = {'column0': '10.0.17', 'column1': '14.0.4'};
 
 @customElement('version-view')
 export class VersionViewElement extends LitElement {

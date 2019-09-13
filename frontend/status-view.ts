@@ -7,6 +7,7 @@ import '@vaadin/vaadin-lumo-styles/badge.js';
 import * as moment from 'moment';
 import RoadmapItem from './generated/com/qtdzz/platform/model/RoadmapItem';
 import '@polymer/paper-toggle-button/paper-toggle-button.js'
+import { mavenVersionComparator } from './ultis';
 
 @customElement('status-view')
 export class VersionViewElement extends LitElement {
@@ -16,13 +17,16 @@ export class VersionViewElement extends LitElement {
   private versions: Array<string> = [];
   private latestReleaseMap: {[key: number]: Array<string>} = {};
   private ltsVersions: Array<string> = [];
-  private latestVersions: Array<string> = [];
+  private latestVersionItem: any = { major: -1, status: []};
   private comingVersions: Array<string> = [];
   @query('#platformGrid')
   platformGrid : any;
 
   @query('#platformColumn')
   platformColumn : any;
+
+  @query('#releaseColumn')
+  releaseColumn : any;
 
   @query('#gaDateColumn')
   gaDateColumn : any;
@@ -32,6 +36,9 @@ export class VersionViewElement extends LitElement {
 
   @query('#statusColumn')
   statusColumn : any;
+
+  @query('#extendedColumn')
+  extendedColumn : any;
 
   @query('#statusGrid')
   statusGrid : any;
@@ -59,6 +66,8 @@ export class VersionViewElement extends LitElement {
       </vaadin-grid-column>
       <vaadin-grid-column resizable id="endDateColumn" header="Support Expiration">
       </vaadin-grid-column>
+      <vaadin-grid-column resizable id="extendedColumn">
+      </vaadin-grid-column>
     </vaadin-grid>
     <custom-style>
       <style include="lumo-badge">
@@ -67,6 +76,17 @@ export class VersionViewElement extends LitElement {
         }
         .status[theme~="badge"] {
           text-transform: uppercase;
+        }
+        .notAvailable {
+          align-self: center;
+          color: grey;
+          opacity: 0.5;
+        }
+        .enterpriseSubscribers {
+          font-weight: bold;
+          right: 1px;
+          top: 1px;
+          position: absolute;
         }
       </style>
       <style is="custom-style">
@@ -92,12 +112,37 @@ export class VersionViewElement extends LitElement {
       root.innerHTML = `<div class="${rowData.item.status}"><p>${endMoment.format('LL')}</p><p>(${relative})</p></div>`;
     };
     this.statusColumn.renderer = (root: any, _ : any, rowData: any) => {
-      const status = rowData.item.status;
+      const status = rowData.item.status.join(' ');
       const style = this.createBadgeStyle(status);
       root.innerHTML = `<div class="status" theme="${style}">${status}</div>`;
     };
     this.platformColumn.renderer = (root: any, _ : any, rowData: any) => {
-      root.innerHTML = `<span class="${rowData.item.status}">Vaadin ${rowData.item.major}</div>`;
+      root.innerHTML = `<span class="${rowData.item.status.join(' ')}">Vaadin ${rowData.item.major}</span>`;
+    };
+    this.extendedColumn.headerRenderer =(root: any, _ : any) => {
+      root.innerHTML = `Extended maintenance<span class="enterpriseSubscribers" theme="badge primary success">For enterprise subscribers</span>`;
+    };
+    this.extendedColumn.renderer = (root: any, _ : any, rowData: any) => {
+      if (rowData.item.extendedDate) {
+        const extendedMoment = moment(rowData.item.extendedDate, 'DD-MM-YYYY');
+        root.innerHTML = `<div><p>${extendedMoment.format('LL')}</p><p>(${extendedMoment.fromNow()})</p></div>`;
+      } else {
+        root.innerHTML = `<span class="notAvailable">Not available</span>`;
+      }
+    };
+
+    this.releaseColumn.renderer = (root: any, _ : any, rowData: any) => {
+      if (rowData.item.latestStable) {
+        root.innerHTML =
+        `<p>Latest stable: <a href="https://github.com/vaadin/platform/releases/tag/${rowData.item.latestStable}" target="_blank"> ${rowData.item.latestStable}</a></p>
+        <p>Latest prerelease: <a href="https://github.com/vaadin/platform/releases/tag/${rowData.item.latest}" target="_blank"> ${rowData.item.latest}</a></p>`
+        ;
+      } else if (rowData.item.latest) {
+        root.innerHTML =
+        `<p><a href="https://github.com/vaadin/platform/releases/tag/${rowData.item.latest}" target="_blank">${rowData.item.latest}</a></p>`;
+      } else {
+        root.innerHTML = '<span class="notAvailable">Not available</span>';
+      }
     };
     this.statusController.getRoadMap().then((roadmaps: Array<RoadmapItem | null>) => {
       this.roadmapItems = roadmaps.map((i: any) => {
@@ -108,9 +153,11 @@ export class VersionViewElement extends LitElement {
       this.statusController.getRelease().then((versions: Array<string | null>) => {
         this.versions = versions.filter(i => !!i) as Array<string>;
         this.roadmapItems.forEach((i: any) => {
-          const latestVersion = this.findLatestVersionFromMajor(i.major);
-          i.latestVersion = latestVersion;
+          const latestVersions = this.findLatestVersionFromMajor(i.major);
+          i.latestStable = latestVersions.latestStable;
+          i.latest = latestVersions.latest;
         });
+        this.rebuildGridItems();
       });
     });
   }
@@ -119,17 +166,16 @@ export class VersionViewElement extends LitElement {
     return version.includes('alpha') || version.includes('beta') || version.includes('rc');
   }
 
-  private getLatestFromArray(versions: Array<string>): string {
+  private getLatestStableFromSortedArray(versions: Array<string>): string {
     if (versions.length <= 0) {
       return '';
     }
-    if (this.isPrerelease(versions[0])) {
-      return versions[versions.length - 1];
-    } else if (this.isPrerelease(versions[versions.length - 1])) {
-      return versions[0];
-    } else {
-      return  versions[versions.length - 1];
+    for (let i = versions.length - 1; i >= 0; i--) {
+      if (!this.isPrerelease(versions[i])) {
+        return versions[i];
+      }
     }
+    return '';
   }
 
   async shouldShowDeprecatedClick(show: boolean): Promise<void> {
@@ -138,7 +184,7 @@ export class VersionViewElement extends LitElement {
   }
 
   async rebuildGridItems(): Promise<void> {
-    const items = this.roadmapItems.filter(i => i.status !== 'deprecated' || this.shouldShowDeprecated);
+    const items = this.roadmapItems.filter(i => !i.status.includes('deprecated') || this.shouldShowDeprecated);
     this.platformGrid.items = items;
     this.requestUpdate();
   }
@@ -154,7 +200,7 @@ export class VersionViewElement extends LitElement {
       return 'badge contrast primary';
     }
   }
-  private findLatestVersionFromMajor(major: number) {
+  private findLatestVersionFromMajor(major: number): any {
     this.versions.forEach((version: string) => {
       if (version.startsWith(major.toString())) {
         const arr = this.latestReleaseMap[major] || [];
@@ -163,27 +209,13 @@ export class VersionViewElement extends LitElement {
       }
     });
     if (this.latestReleaseMap[major]) {
-      this.latestReleaseMap[major].sort((a: string, b: string) => {
-        console.log('comparing ', a, b);
-        const regex = /(\d+)\.(\d+)\.(\d+)(\.(alpha|beta|rc)(\d+))?/g;
-        const matchA = regex.exec(a);
-        const matchB = regex.exec(b);
-        if (!matchA || !matchB) {
-          return a > b ? 1 : -1;
-        }
-        if (matchA[6] && matchB[6]) {
-          return matchA[6] > matchB[6] ? 1 : -1;
-        }
-        if (matchA[6] && !matchB[6]) {
-          return -1;
-        }
-        if (!matchA[6] && matchB[6]) {
-          return 1;
-        }
-        return Number(matchA[3]) - Number(matchB[3]);
-      });
-      console.log(this.latestReleaseMap);
-      return this.getLatestFromArray(this.latestReleaseMap[major]);
+      this.latestReleaseMap[major].sort(mavenVersionComparator);
+      const latestStable = this.getLatestStableFromSortedArray(this.latestReleaseMap[major]);
+      const latest = this.latestReleaseMap[major][this.latestReleaseMap[major].length - 1];
+      if (latestStable !== latest) {
+        return {latest, latestStable};
+      }
+      return {latest};
     } else {
       return '';
     }
@@ -193,21 +225,24 @@ export class VersionViewElement extends LitElement {
     const startDate: Date = moment(item.gaDate, 'DD-MM-YYYY').toDate();
     const endDate: Date = moment(item.endDate, 'DD-MM-YYYY').toDate();
     const now: Date = new Date();
-    let status = '';
+    let statuses: Array<string> = [];
     if (startDate > now) {
-      status += 'incoming';
+      statuses.push('incoming');
       this.comingVersions.push(item);
     } else {
+      if (startDate < now && endDate > now && item.major > this.latestVersionItem.major) {
+        statuses.push('latest');
+        this.latestVersionItem.status = this.latestVersionItem.status.filter((i: string) => i !== 'latest');
+        this.latestVersionItem = item;
+      }
       if (item.isLTS) {
-        status += 'lts';
+        statuses.push('lts');
         this.ltsVersions.push(item);
-      } else if (startDate < now && endDate > now) {
-        status += 'latest';
-        this.latestVersions.push(item);
-      } else if (endDate < now) {
-        status += 'deprecated';
+      }
+      if (endDate < now) {
+        statuses.push('deprecated');
       }
     }
-    return status;
+    return statuses;
   }
 }

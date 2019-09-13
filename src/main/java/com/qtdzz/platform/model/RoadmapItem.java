@@ -1,12 +1,12 @@
 package com.qtdzz.platform.model;
 
-import org.codehaus.jackson.annotate.JsonProperty;
-
 public class RoadmapItem {
     private int major;
     private String gaDate;
     private String endDate;
     private boolean isLTS;
+    private String extendedDate;
+
 
     public int getMajor() {
         return major;
@@ -38,5 +38,13 @@ public class RoadmapItem {
 
     public void setIsLTS(boolean LTS) {
         isLTS = LTS;
+    }
+
+    public String getExtendedDate() {
+        return extendedDate;
+    }
+
+    public void setExtendedDate(String extendedDate) {
+        this.extendedDate = extendedDate;
     }
 }

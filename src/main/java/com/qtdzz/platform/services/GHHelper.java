@@ -1,13 +1,4 @@
-/*******************************************************************************
- * Vaadin Designer
- *
- * Copyright (C) 2015 Vaadin Ltd
- *
- * This program is available under Commercial Vaadin Add-On License 3.0 (CVALv3).
- *
- * For more details, see https://vaadin.com/license/cval-3
- *******************************************************************************/
-package com.vaadin.connect.starter;
+package com.qtdzz.platform.services;
 
 import java.io.IOException;
 import java.util.Collections;

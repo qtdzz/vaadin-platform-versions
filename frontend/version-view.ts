@@ -13,8 +13,8 @@ import '@vaadin/vaadin-lumo-styles/badge.js';
 import '@polymer/paper-toggle-button/paper-toggle-button.js'
 import './version-controller';
 import { VersionController } from './version-controller';
-import PlatformItem from './generated/com/qtdzz/model/PlatformItem';
-import PlatformItemsResult from './generated/com/qtdzz/model/PlatformItemsResult';
+import PlatformItem from './generated/com/qtdzz/platform/model/PlatformItem';
+import PlatformItemsResult from './generated/com/qtdzz/platform/model/PlatformItemsResult';
 
 const COLUMN_PREFIX = 'column';
 const VERSIONS_LAYOUT_CACHED = 'com.qtdzz.vaadin-platform-versions.layout';

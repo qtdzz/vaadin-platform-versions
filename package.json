@@ -30,6 +30,7 @@
     "@webcomponents/webcomponentsjs": "^2.2.7",
     "abortcontroller-polyfill": "^1.2.9",
     "lit-element": "^2.1.0",
+    "moment": "^2.24.0",
     "whatwg-fetch": "^3.0.0"
   },
   "devDependencies": {

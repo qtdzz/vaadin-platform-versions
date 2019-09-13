@@ -1,5 +1,5 @@
 import * as versionService from './generated/VersionService';
-import PlatformItemsResult from './generated/com/qtdzz/model/PlatformItemsResult';
+import PlatformItemsResult from './generated/com/qtdzz/platform/model/PlatformItemsResult';
 
 export type SetPlatformItemsCallback = (items: PlatformItemsResult, column: string) => void;
 export type setReleasedVersionsCallback = (versions: Array<String | null>) => void;

@@ -7,27 +7,37 @@
  *
  * For more details, see https://vaadin.com/license/cval-3
  *******************************************************************************/
-package com.vaadin.connect.starter;
+package com.qtdzz.platform.services;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import javax.validation.constraints.NotNull;
 
+import com.qtdzz.platform.model.RoadmapItem;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.qtdzz.model.PlatformItem;
-import com.qtdzz.model.PlatformItemsResult;
-import com.qtdzz.model.PlatformVersions;
+import com.qtdzz.platform.model.PlatformItem;
+import com.qtdzz.platform.model.PlatformItemsResult;
+import com.qtdzz.platform.model.PlatformVersions;
 import com.vaadin.connect.VaadinService;
 import com.vaadin.connect.auth.AnonymousAllowed;
 
 @VaadinService
 @AnonymousAllowed
 public class VersionService {
+    private static final String ROAD_MAP_FILE = "roadmap.json";
+    private static final String STATUS_FILE = "status.json";
 
     @NotNull
     public PlatformItemsResult getVersionsFromLatestRelease() {
@@ -56,6 +66,23 @@ public class VersionService {
         return new PlatformItemsResult(platFormVersion, platformItems);
     }
 
+    @NotNull
+    public List<RoadmapItem> getRoadmap() {
+        InputStream resourceAsStream = getClass().getResourceAsStream(ROAD_MAP_FILE);
+        if (resourceAsStream == null) {
+            getLogger().info("roadmap.json file is not found");
+            return Collections.emptyList();
+        }
+        try {
+            String content = IOUtils.toString(resourceAsStream);
+            RoadmapItem[] roadmapItems = new ObjectMapper().readValue(content, RoadmapItem[].class);
+            return Arrays.asList(roadmapItems);
+        } catch (IOException e) {
+            getLogger().info("Can't get roadmap file.");
+            return Collections.emptyList();
+        }
+    }
+
     private List<PlatformItem> constructPlatformItems(
             PlatformVersions platformVersionsObject) {
         if (platformVersionsObject == null) {
@@ -72,9 +99,13 @@ public class VersionService {
             platformVersions.setPlatform(version);
             return platformVersions;
         } catch (IOException e) {
-            LoggerFactory.getLogger(VersionService.class)
+            getLogger()
                     .error("Can't get platform versions.json", e);
             return null;
         }
+    }
+
+    private static Logger getLogger() {
+        return LoggerFactory.getLogger(VersionService.class);
     }
 }

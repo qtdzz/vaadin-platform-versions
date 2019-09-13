@@ -6,9 +6,13 @@ import '@vaadin/vaadin-tabs/vaadin-tab.js';
 import '@polymer/iron-pages/iron-pages';
 import '@vaadin/vaadin-icons';
 
+const DEFAULT_TAB: number = 0;
+const SELECTED_TAB_CACHED = 'com.qtdzz.vaadin-platform-versions.selectedTab';
+
 @customElement('app-view')
 export class AppViewElement extends LitElement {
-  private selectedTab: number = 0;
+
+  private selectedTab: number;
   createRenderRoot() {return this;}
 
   @query('statusTab')
@@ -16,14 +20,29 @@ export class AppViewElement extends LitElement {
 
   @query('versionTab')
   versionTab: any;
+  constructor() {
+    super();
+    this.selectedTab = this.getSelectedTab();
+  }
 
+  private getSelectedTab(): number {
+    const cachedString = localStorage.getItem(SELECTED_TAB_CACHED);
+    if (cachedString ) {
+      try {
+        return Number(cachedString);
+      } catch(e) {
+        return DEFAULT_TAB;
+      }
+    }
+    return DEFAULT_TAB;
+  }
   render() {
     return html`
       <div class="warning"><iron-icon icon="vaadin:warning"></iron-icon> Disclaimer: this is an unofficial application which fetches data from GitHub and vaadin.com by a walking alive human.
       So please DO NOT take this as an official reference. For official information, please visit: <a href="https://vaadin.com/roadmap" target="_blank">Vaadin roadmap</a> or <a href="https://github.com/vaadin/platform" target="_blank">Vaadin Platform repository</a>
       </div>
       <div class="appView">
-        <vaadin-tabs>
+        <vaadin-tabs selected="${this.selectedTab}">
           <vaadin-tab id="statusTab" @click="${this.statusTabClick}">Platform roadmap</vaadin-tab>
           <vaadin-tab id="versionTab" @click="${this.versionTabClick}">Versions Comparator</vaadin-tab>
         </vaadin-tabs>
@@ -50,12 +69,21 @@ export class AppViewElement extends LitElement {
   }
 
   async statusTabClick(): Promise<void> {
-    this.selectedTab = 0;
+    this.selectTab(0);
     this.requestUpdate();
   }
 
   async versionTabClick(): Promise<void> {
-    this.selectedTab = 1;
+    this.selectTab(1);
     this.requestUpdate();
+  }
+
+  private selectTab(selectTab: number) {
+    this.selectedTab = selectTab;
+    this.storeSelectedTab(selectTab);
+  }
+
+  private storeSelectedTab(tab: number) {
+    localStorage.setItem(SELECTED_TAB_CACHED, String(tab));
   }
 }

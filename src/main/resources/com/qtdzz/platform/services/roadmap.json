@@ -27,8 +27,8 @@
     "extendedDate": "14-08-2034"
   }, {
     "major": 15,
-    "gaDate": "04-10-2019",
-    "endDate": "01-01-2020",
+    "gaDate": "04-12-2019",
+    "endDate": "04-04-2020",
     "isLTS": false
   }, {
     "major": 16,

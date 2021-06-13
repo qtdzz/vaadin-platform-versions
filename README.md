@@ -1,3 +1,7 @@
+# Note
+
+Update June 2021: Unfortunately, I don't have time and interest in this project anymore. If you still find it useful, please feel free to clone the code and revive it if necessary. Thanks!  
+
 # Vaadin Connect starter
 
 This is the Vaadin Connect starter that can be used to simplify the new Vaadin Connect based project creation.
